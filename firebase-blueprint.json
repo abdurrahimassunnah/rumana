@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "Information about an authenticated user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase user UID" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "photoURL": { "type": "string", "description": "User profile photo URL" },
+        "createdAt": { "type": "string", "description": "ISO timestamp of account creation" }
+      },
+      "required": ["uid", "email"]
+    },
+    "historyItem": {
+      "title": "History Record",
+      "description": "Completed work including questions, lesson plans, and detailed pedagogical plans",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique history record ID" },
+        "userId": { "type": "string", "description": "ID of the user who generated this record" },
+        "mode": { "type": "string", "description": "Generation mode: exercise, lesson_notes, or detailed_plan" },
+        "gradeLevel": { "type": "string", "description": "Grade level or class" },
+        "topicTitle": { "type": "string", "description": "Title of topic or topics covered" },
+        "chapterTitle": { "type": "string", "description": "Title of the chapter" },
+        "previewText": { "type": "string", "description": "Short preview text of the generated item" },
+        "fullContent": { "type": "string", "description": "Full content or JSON string" },
+        "timestamp": { "type": "number", "description": "Unix timestamp in ms" },
+        "createdAt": { "type": "string", "description": "ISO creation string" }
+      },
+      "required": ["id", "userId", "gradeLevel", "previewText", "timestamp"]
+    },
+    "savedBook": {
+      "title": "Saved Book Table of Contents",
+      "description": "Saved PDF book with its extracted table of contents and chapter structure",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique book record ID" },
+        "userId": { "type": "string", "description": "ID of the user who uploaded the book" },
+        "title": { "type": "string", "description": "Title of the book" },
+        "fileName": { "type": "string", "description": "Original file name of the PDF" },
+        "pageCount": { "type": "number", "description": "Total pages in the PDF" },
+        "gradeLevel": { "type": "string", "description": "Target grade level" },
+        "subject": { "type": "string", "description": "Subject name" },
+        "chaptersJson": { "type": "string", "description": "JSON stringified TOC chapters and topics array" },
+        "createdAt": { "type": "number", "description": "Unix timestamp of upload" },
+        "updatedAt": { "type": "number", "description": "Unix timestamp of last update" }
+      },
+      "required": ["id", "userId", "title", "chaptersJson", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/userProfile" },
+      "description": "User profile document stored under user's UID"
+    },
+    "/users/{userId}/history/{historyId}": {
+      "schema": { "$ref": "#/entities/historyItem" },
+      "description": "User's permanently saved history of completed exercises and lesson plans"
+    },
+    "/users/{userId}/books/{bookId}": {
+      "schema": { "$ref": "#/entities/savedBook" },
+      "description": "User's saved books library and table of contents"
+    }
+  }
+}

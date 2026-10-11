@@ -1,0 +1,40 @@
+/* Global custom styles and font configuration */
+@font-face {
+  font-family: 'Kalpurush';
+  src: url('https://cdn.jsdelivr.net/gh/maateen/kalpurush-font@master/fonts/Kalpurush.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/maateen/kalpurush-font@master/fonts/Kalpurush.woff') format('woff'),
+       url('https://cdn.jsdelivr.net/gh/maateen/kalpurush-font@master/fonts/Kalpurush.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Kalpurush', 'SolaimanLipi', 'Inter', 'Noto Sans Bengali', sans-serif;
+  background-color: #fcfdfd;
+  overflow-x: hidden;
+}
+
+.font-kalpurush, .font-bengali {
+  font-family: 'Kalpurush', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif !important;
+}
+
+.font-times, .font-english {
+  font-family: 'Times New Roman', Times, Georgia, serif !important;
+}
+
+/* Print specific font styles for lesson plans */
+@media print {
+  .bengali-doc, .bengali-doc * {
+    font-family: 'Kalpurush', 'SolaimanLipi', sans-serif !important;
+  }
+  .english-doc, .english-doc * {
+    font-family: 'Times New Roman', Times, serif !important;
+  }
+}
+
+.dark body, body.dark {
+  background-color: #0b0f17;
+  color: #f1f5f9;
+}
+

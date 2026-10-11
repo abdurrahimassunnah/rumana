@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>মাদরাসাতুস সুন্নাহর স্মার্ট পাঠ পরিকল্পনা ও অনুশীলনী</title>
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    <link href="https://fonts.maateen.me/solaiman-lipi/font.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Kalpurush', 'SolaimanLipi', 'Inter', 'Noto Sans Bengali', 'sans-serif'],
+              serif: ['"Times New Roman"', 'Times', 'Georgia', 'serif'],
+              kalpurush: ['Kalpurush', 'SolaimanLipi', 'Noto Sans Bengali', 'sans-serif'],
+              bengali: ['Kalpurush', 'SolaimanLipi', 'Noto Sans Bengali', 'sans-serif'],
+              times: ['"Times New Roman"', 'Times', 'Georgia', 'serif'],
+              english: ['"Times New Roman"', 'Times', 'Georgia', 'serif'],
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Kalpurush', 'SolaimanLipi', 'Inter', 'Noto Sans Bengali', sans-serif;
+        background-color: #fcfdfd;
+        overflow-x: hidden;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      .dark body, body.dark {
+        background-color: #0b0f17;
+        color: #f1f5f9;
+      }
+      /* Custom scrollbar for better aesthetics */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #f1f5f9; }
+      ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      
+      .dark ::-webkit-scrollbar-track { background: #111827; }
+      .dark ::-webkit-scrollbar-thumb { background: #374151; }
+      .dark ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+    </style>
+    <link rel="stylesheet" href="/index.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
