@@ -899,7 +899,7 @@ async function startServer() {
 
   // API Route: Generate Detailed Pedagogical Lesson Plan (মাদরাসাতুস সুন্নাহ বিস্তারিত পাঠ পরিকল্পনা - 100% Template Match)
   app.post("/api/generate-detailed-plan", async (req, res) => {
-    const { topicTitle, chapterTitle, gradeLevel, subject, teacherName, totalDurationMinutes, planDays, content, teachingMethodology, additionalInstructions, fileData, mimeType, pageRanges, startPage, endPage, language } = req.body;
+    const { topicTitle, chapterTitle, gradeLevel, subject, teacherName, totalDurationMinutes, planDays, content, teachingMethodology, additionalInstructions, fileData, mimeType, pageRanges, startPage, endPage, language, isStandaloneTopic } = req.body;
 
     try {
       const ai = getGeminiClient(req);
@@ -943,11 +943,29 @@ async function startServer() {
         - বাংলায় শিখনফল অবশ্যই "পাঠ শেষে শিক্ষার্থীরা..." দিয়ে শুরু হবে এবং সাফল্য নির্ণায়ক "সাফল্য নির্ণায়ক: আমি পারি:" দিয়ে শুরু হবে।
         - শিক্ষক কার্যক্রম, শিক্ষার্থী কার্যক্রম এবং ধাপসমূহ বাংলায় হবে।`;
 
+      const standaloneRule = isStandaloneTopic
+        ? `========================================================================================================
+        **স্বাধীন বিষয় / বই ছাড়া সরাসরি স্বয়ংক্রিয় পেডাগোজিক্যাল প্ল্যান (AUTONOMOUS CREATION - NO BOOK / TEXTBOOK DEPENDENCY):**
+        ========================================================================================================
+        - এই পাঠ পরিকল্পনাটি কোনো নির্দিষ্ট বই বা পিডিএফের উপর নির্ভরশীল নয়। শিক্ষক বই ছাড়াই সরাসরি বিষয় উল্লেখ করেছেন।
+        - আপনি কোনো বইয়ের সাহায্য ছাড়াই নিজের মাস্টার পেডাগোজিক্যাল জ্ঞান দিয়ে এই বিষয়ের উপর একটি স্বয়ংসম্পূর্ণ, বিস্তারিত ও আনন্দদায়ক লেসন প্ল্যান তৈরি করবেন।
+        - শিক্ষক যে বিষয়/শব্দগুলো দিয়েছেন:
+          • মূল টপিক: "${effectiveTopic}"
+          • নির্দেশনা ও বিবরণ: "${content || ''}"
+        - **বিশেষ গুরুত্ব (যদি শব্দ মুখস্থকরণ বা ভাষা শিক্ষা হয়, যেমন: আরবি শব্দাদি আনন্দের সাথে মুখস্থকরণ):**
+          • মুখস্থ করানোর পদ্ধতি হবে সম্পূর্ণ আকর্ষণীয় ও আনন্দদায়ক (Fun & Playful Memorization Techniques)।
+          • শিক্ষক ও শিক্ষার্থীদের কার্যক্রমে (teacherDoes & childrenDo) আনন্দদায়ক খেলাধুলা (Educational Games e.g. Magic Flashcard, Guess the Word, Action/Mime, Sound & Echo, Fast Finger), ছড়া/রিদম, শারীরিক অঙ্গভঙ্গি (TPR) ও সক্রিয় অংশগ্রহণ বিশদভাবে বর্ণনা করুন।
+          • একঘেয়ে পুনরাবৃত্তি বাদ দিয়ে আনন্দদায়ক কৌশলে ক্লাসের ভেতরই শিশুদের মুখস্থ করিয়ে নেওয়ার স্পষ্ট ধাপ উল্লেখ করুন।
+        ========================================================================================================`
+        : '';
+
       const prompt = `
         You are a master teacher trainer and curriculum developer at Madrasatus Sunnah.
         Create an exact 100% copy-to-copy Lesson Plan matching the official "Lesson Plan Template" standard.
 
         ${langRule}
+
+        ${standaloneRule}
 
         **Input Details:**
         • Class: ${effectiveClass}
@@ -956,9 +974,9 @@ async function startServer() {
         • Teacher's Name: ${effectiveTeacher}
         • Duration per Session: ${duration} mins
         • Plan Scope / Total Days: ${effectivePlanDays} Day(s)
-        • Chapter/Context: ${chapterTitle || "General"}
+        • Chapter/Context: ${chapterTitle || (isStandaloneTopic ? "স্বাধীন পাঠ্যক্রম" : "General")}
         ${pageRangeDesc ? `• Selected Page Range(s) / পৃষ্ঠা সীমা: ${pageRangeDesc}` : ''}
-        • Content / Textbook Context: ${content || "Analyze the topic to create the full lesson plan."}
+        • Content / Topic Context: ${content || "Analyze the topic to create the full lesson plan."}
         ${additionalInstructions ? `• Special Instructions: ${additionalInstructions}` : ''}
 
         **Template Structural Rules:**
@@ -1139,9 +1157,10 @@ async function startServer() {
         **কঠোর নির্দেশনাবলী:**
         ১. [ভাষা নির্ধারণ]: বইটি যে ভাষায় রচিত (বাংলা হলে সম্পূর্ণ বাংলা, ইংরেজি হলে সম্পূর্ণ ইংরেজি, আরবি হলে আরবি), ঠিক সেই ভাষাতেই অধ্যায়ের নাম, পাঠ ও সারসংক্ষেপ লিখবেন। ইংরেজি বই হলে অধ্যায় ও টপিকের শিরোনাম এবং 'contentExcerpt' ইংরেজিতেই থাকবে।
         ২. বইটির প্রতিটি অধ্যায় (Chapter) এবং অধ্যায়ের অধীনে থাকা পাঠ বা পরিচ্ছেদসমূহ (Topics) যথাযথ নাম, বিষয় ও পৃষ্ঠা নম্বর (Page Number) সহ বের করুন।
-        ৩. যদি কোনো পাঠের সংক্ষিপ্ত বিবরণ বা সারসংক্ষেপ থাকে, তা 'contentExcerpt' ফিল্ডে ১-২ লাইনে বইটির নিজস্ব ভাষায় যুক্ত করুন।
-        ৪. অধ্যায় ও পাঠের ক্রম নির্ভুল রাখুন।
-        ৫. কোনো অতিরিক্ত কথা ছাড়া শুধুমাত্র এবং শুধুমাত্র নিচের JSON স্কিমায় বৈধ JSON আকারে উত্তর দিন (কোনো কোডব্লক বা ব্যাখ্যা ছাড়া)।
+        ৩. **অত্যন্ত গুরুত্বপূর্ণ (সাব-হেডিং/পাঠসমূহ বাধ্যতামূলক):** প্রতিটি অধ্যায়ের অধীনে অবশ্যই প্রাসঙ্গিক পাঠ বা উপশিরোনাম (topics / subheadings) থাকতে হবে (কমপক্ষে ১ থেকে ৪টি)। মূল পিডিএফের সূচিপত্রে আলাদা উপশিরোনাম উল্লেখ না থাকলেও, ওই অধ্যায়ের মূল বিষয়বস্তুর আলোকে পাঠ্যক্রমসম্মত উপশিরোনাম (topics) তৈরি করে দিন। topics ফিল্ড যেন কোনো অবস্থাতেই ফাঁকা (empty) না থাকে।
+        ৪. যদি কোনো পাঠের সংক্ষিপ্ত বিবরণ বা সারসংক্ষেপ থাকে, তা 'contentExcerpt' ফিল্ডে ১-২ লাইনে বইটির নিজস্ব ভাষায় যুক্ত করুন।
+        ৫. অধ্যায় ও পাঠের ক্রম নির্ভুল রাখুন।
+        ৬. কোনো অতিরিক্ত কথা ছাড়া শুধুমাত্র এবং শুধুমাত্র নিচের JSON স্কিমায় বৈধ JSON আকারে উত্তর দিন (কোনো কোডব্লক বা ব্যাখ্যা ছাড়া)।
 
         **প্রত্যাশিত JSON ফরম্যাট:**
         {
@@ -1204,7 +1223,7 @@ async function startServer() {
             model: currentModel,
             contents: { parts: parts },
             config: {
-              systemInstruction: "আপনি একজন পাঠ্যবই কারিকুলাম ও সূচিপত্র বিশেষজ্ঞ। আপনি শুধুমাত্র সঠিক এবং সম্পূর্ণ JSON উত্তর দিন।",
+              systemInstruction: "আপনি একজন পাঠ্যবই কারিকুলাম ও সূচিপত্র বিশেষজ্ঞ। আপনি শুধুমাত্র সঠিক এবং সম্পূর্ণ JSON উত্তর দিন। প্রতিটি অধ্যায়ের অধীনে অবশ্যই topics/উপশিরোনাম অন্তর্ভুক্ত করুন।",
               responseMimeType: "application/json",
               temperature: 0.1
             }
@@ -1223,10 +1242,117 @@ async function startServer() {
       }
 
       const parsed = JSON.parse(result.text || "{}");
+
+      // Normalize chapters and ensure topics exist
+      if (Array.isArray(parsed.chapters)) {
+        parsed.chapters = parsed.chapters.map((ch: any, idx: number) => {
+          const chId = ch.id || `ch_${idx + 1}`;
+          const chTitle = (ch.title || `অধ্যায় ${idx + 1}`).trim();
+          const startP = Number(ch.startPage || 1) || 1;
+          const endP = Number(ch.endPage || startP + 10) || (startP + 10);
+          
+          let topics = ch.topics || ch.subtopics || ch.subTopics || ch.lessons || ch.sections || [];
+          if (Array.isArray(topics) && topics.length > 0) {
+            topics = topics.map((t: any, tIdx: number) => {
+              if (typeof t === 'string') {
+                return {
+                  id: `${chId}_t_${tIdx + 1}`,
+                  topicNumber: `${tIdx + 1}`,
+                  title: t.trim(),
+                  pageNumber: startP,
+                  endPageNumber: startP,
+                  contentExcerpt: t.trim()
+                };
+              }
+              const tTitle = (t.title || t.name || t.topicTitle || t.heading || `পাঠ ${tIdx + 1}`).trim();
+              return {
+                id: t.id || `${chId}_t_${tIdx + 1}`,
+                topicNumber: (t.topicNumber || `${tIdx + 1}`).toString(),
+                title: tTitle,
+                pageNumber: Number(t.pageNumber || startP) || startP,
+                endPageNumber: Number(t.endPageNumber || startP) || startP,
+                contentExcerpt: (t.contentExcerpt || t.excerpt || tTitle).trim()
+              };
+            });
+          } else {
+            // Ensure at least one topic
+            topics = [
+              {
+                id: `${chId}_t_main`,
+                topicNumber: '১',
+                title: chTitle,
+                pageNumber: startP,
+                endPageNumber: endP,
+                contentExcerpt: `${chTitle} - সম্পূর্ণ অধ্যায় ও মূল পাঠ`
+              }
+            ];
+          }
+
+          return {
+            ...ch,
+            id: chId,
+            title: chTitle,
+            startPage: startP,
+            endPage: endP,
+            topics
+          };
+        });
+      }
+
       res.json(parsed);
     } catch (error: any) {
       console.error("Error in extract-pdf-toc endpoint:", error);
       res.status(500).json({ error: error.message || "সূচিপত্র লোড করতে সমস্যা হয়েছে।" });
+    }
+  });
+
+  // API Route: Generate Subheadings/Topics for a specific chapter
+  app.post("/api/generate-subheadings", async (req, res) => {
+    const { chapterTitle, bookTitle, gradeLevel, category, startPage, endPage, count = 4 } = req.body;
+
+    try {
+      const ai = getGeminiClient(req);
+      const prompt = `
+        আপনি একজন পাঠ্যক্রম ও পাঠ্যবই বিশেষজ্ঞ।
+        নিচের অধ্যায়ের জন্য ${count || 4}টি চমৎকার, বাস্তবসম্মত এবং শ্রেণিবান্ধব 'উপশিরোনাম / পাঠ' (Sub-headings / Lessons) তৈরি করুন:
+        
+        - বইয়ের নাম: ${bookTitle || "পাঠ্যবই"}
+        - অধ্যায়ের নাম: ${chapterTitle || "প্রধান অধ্যায়"}
+        - শ্রেণি: ${gradeLevel || "পঞ্চম শ্রেণি"}
+        - বিষয়/ক্যাটাগরি: ${category || "সাধারণ বিষয়"}
+        - পৃষ্ঠা নম্বর: ${startPage || 1} থেকে ${endPage || 20}
+        
+        নিয়মাবলী:
+        ১. বইটির ভাষার ধরন ও প্রাসঙ্গিকতা অনুযায়ী উপশিরোনামগুলো সাজান।
+        ২. প্রতিটি পাঠের জন্য ১-২ লাইনের সারসংক্ষেপ (contentExcerpt) দিন।
+        ৩. শুধুমাত্র নিচের JSON ফরম্যাটে উত্তর দিন:
+        {
+          "topics": [
+            {
+              "topicNumber": "১",
+              "title": "পাঠ ১: উপশিরোনাম",
+              "pageNumber": 1,
+              "endPageNumber": 4,
+              "contentExcerpt": "পাঠের সারসংক্ষেপ"
+            }
+          ]
+        }
+      `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.3
+        }
+      });
+
+      const parsed = JSON.parse(response.text || "{}");
+      res.json(parsed);
+    } catch (error: any) {
+      console.error("Error generating subheadings:", error);
+      res.status(500).json({ error: error.message || "সাব-হেডিং তৈরি করতে সমস্যা হয়েছে।" });
     }
   });
 

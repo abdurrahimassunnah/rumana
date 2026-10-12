@@ -287,8 +287,8 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    let topicTitle = customTopicTitle || 'Colors (Red, Blue, Yellow)';
-    let chapterTitle = customChapterTitle || 'General';
+    let topicTitle = customTopicTitle || 'আরবি শব্দ শিক্ষা ও মুখস্থকরণ';
+    let chapterTitle = customChapterTitle || 'স্বাধীন বিষয়';
 
     if (activeTab === 'toc') {
       topicTitle = `${selectedTopic.topicNumber ? `${selectedTopic.topicNumber}. ` : ''}${selectedTopic.title}`;
@@ -297,10 +297,13 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       const pageDesc = pageRanges.map((r, i) => `পৃষ্ঠা ${r.start}-${r.end}`).join(', ');
       topicTitle = customTopicTitle ? `${customTopicTitle} (${pageDesc})` : `পাঠ্যবই (${pageDesc})`;
       chapterTitle = customChapterTitle || uploadedBookTitle || 'পাঠ্যবই অংশ';
+    } else if (activeTab === 'custom') {
+      topicTitle = customTopicTitle.trim() || 'আরবি শব্দ শিক্ষা ও মুখস্থকরণ';
+      chapterTitle = customChapterTitle.trim() || 'স্বাধীন বিষয় (বই ছাড়া)';
     }
 
     const firstRange = pageRanges[0] || { start: 1, end: 5 };
-    const cleanRanges = pageRanges.map(r => ({
+    const cleanRanges = activeTab === 'custom' ? [] : pageRanges.map(r => ({
       start: r.start,
       end: r.end
     }));
@@ -309,19 +312,20 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       topicTitle,
       chapterTitle,
       gradeLevel: selectedGrade,
-      subject: subject || 'English (Literacy)',
+      subject: subject || (activeTab === 'custom' ? 'আরবি ভাষা ও শব্দভাণ্ডার' : 'English (Literacy)'),
       teacherName: teacherName || 'Kabir Ustadh',
       totalDurationMinutes: totalDuration,
       planDays: planDays,
       content: content || `Lesson content for ${topicTitle}`,
-      file: uploadedFile,
-      fileData: fileBase64,
-      mimeType: fileMime,
-      startPage: firstRange.start,
-      endPage: firstRange.end,
+      file: activeTab === 'custom' ? null : uploadedFile,
+      fileData: activeTab === 'custom' ? null : fileBase64,
+      mimeType: activeTab === 'custom' ? '' : fileMime,
+      startPage: activeTab === 'custom' ? undefined : firstRange.start,
+      endPage: activeTab === 'custom' ? undefined : firstRange.end,
       pageRanges: cleanRanges,
       additionalInstructions,
-      language: planLanguage
+      language: planLanguage,
+      isStandaloneTopic: activeTab === 'custom'
     };
 
     onSubmit(request);
@@ -564,14 +568,14 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
             type="button"
             id="detailed-tab-custom"
             onClick={() => setActiveTab('custom')}
-            className={`py-2.5 px-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`py-2.5 px-3 rounded-xl font-bold transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'custom'
-                ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-400 shadow-sm border border-slate-200/60 dark:border-slate-700'
+                ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-400 shadow-sm border border-teal-500/50 dark:border-teal-600 ring-2 ring-teal-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <FileText className="w-4 h-4 shrink-0" />
-            <span className="truncate">৩. কাস্টম টপিক লিখুন</span>
+            <Sparkles className="w-4 h-4 shrink-0 text-amber-500" />
+            <span className="truncate">৩. কাস্টম বিষয় (বই ছাড়া স্বাধীন প্ল্যান)</span>
           </button>
 
           <button
@@ -698,9 +702,121 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
           </div>
         )}
 
-        {/* Tab 3: Custom Text */}
+        {/* Tab 3: Custom Text / Standalone Topic (No Book Needed) */}
         {activeTab === 'custom' && (
-          <div className="space-y-4 p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
+          <div className="space-y-4 p-4 md:p-5 rounded-2xl bg-gradient-to-b from-teal-50/50 via-slate-50/40 to-white dark:from-teal-950/20 dark:via-slate-900/40 dark:to-slate-900 border border-teal-200/80 dark:border-teal-800/80 shadow-xs">
+            {/* Standalone Feature Banner */}
+            <div className="p-4 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                      বই ছাড়া সরাসরি বিষয় লিখে তৈরি করুন (১০০% স্বাধীন এআই প্ল্যান)
+                    </h4>
+                    <span className="text-[10px] font-bold bg-teal-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      বইমুক্ত মোড সক্রিয়
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                    কোনো বই, অধ্যায় বা পিডিএফের সাহায্য ছাড়াই আপনি শুধু বিষয় বা যে শব্দগুলো শেখাতে চান তা লিখে দিন। এআই নিজের পেডাগোজিক্যাল বুদ্ধিমত্তা দিয়ে খেলাধুলা, আনন্দের কৌশল, শিখনফল ও পূর্ণাঙ্গ লেসন প্ল্যান তৈরি করবে।
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Sample Templates */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>এক ক্লিকে নমুনা লোড করুন (দ্রুত ট্রাই করার জন্য):</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomTopicTitle('আরবি ৪টি শব্দ আনন্দের সাথে মুখস্থকরণ (ورد, انبج, هدية, يد)');
+                    setCustomChapterTitle('আরবি শব্দভাণ্ডার ও কথোপকথন');
+                    setSubject('আরবি ভাষা ও শব্দভাণ্ডার (اللغة العربية)');
+                    setSelectedGrade('১ম শ্রেণি (Class 1)');
+                    setPlanLanguage('bn');
+                    setContent(`و-ورد গোলাপ\nء-انبج আম\nه-هدية উপহার\nي-يد হাত\n\nএই শব্দগুলো শিক্ষার্থীদের আনন্দের সাথে, খেলাধুলা, ছবি ও অঙ্গভঙ্গির মাধ্যমে ক্লাসেই মুখস্থ করাতে হবে। কোনো বইয়ের দরকার নেই; আনন্দদায়ক পেডাগোজিক্যাল পদ্ধতি (Flashcards, TPR, Fun Repetition Game) ব্যবহার করে লেসন প্ল্যান তৈরি করুন।`);
+                  }}
+                  className="p-2.5 rounded-xl border border-teal-200 dark:border-teal-800 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:border-teal-400 text-left transition-all group cursor-pointer shadow-2xs"
+                >
+                  <div className="text-[11px] font-black text-teal-800 dark:text-teal-300 group-hover:text-teal-600 flex items-center gap-1">
+                    <span>🇸🇦 আপনার নমুনা: আরবি শব্দ</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                    ورد, انبج, هدية, يد আনন্দের সাথে খেলাচ্ছলে মুখস্থকরণ
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomTopicTitle('তাজবীদ: নূন সাকিন ও তানভীনের ইখফা');
+                    setCustomChapterTitle('সহীহ কুরআন তিলাওয়াত ও তাজবীদ');
+                    setSubject('কুরআন ও তাজবীদ');
+                    setSelectedGrade('২য় শ্রেণি (Class 2)');
+                    setPlanLanguage('bn');
+                    setContent(`নূন সাকিন ও তানভীনের ইখফা হরফসমূহ (১৫টি)। শিশুদের জন্য সহজে চেনার ছড়া ও গুন্নাহ করে উচ্চারণের আনন্দদায়ক মুখস্থ কৌশল। মুখে মুখে অনুশীলন ও দলীয় কার্যক্রম।`);
+                  }}
+                  className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:border-teal-400 text-left transition-all group cursor-pointer shadow-2xs"
+                >
+                  <div className="text-[11px] font-black text-slate-800 dark:text-slate-200 group-hover:text-teal-600 flex items-center gap-1">
+                    <span>📖 তাজবীদ ও মাখরাজ</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                    ইখফার হরফ ও গুন্নাহ মুখে মুখে অনুশীলন
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomTopicTitle('Actions & Verbs with TPR (Jump, Run, Read, Eat)');
+                    setCustomChapterTitle('Early Phonics & Communication');
+                    setSubject('English (Literacy)');
+                    setSelectedGrade('KG');
+                    setPlanLanguage('en');
+                    setContent(`Teaching 4 action words: Jump, Run, Read, Eat through movement, mime, Simon Says game, and flashcards. Focus on joy and active physical movement.`);
+                  }}
+                  className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:border-teal-400 text-left transition-all group cursor-pointer shadow-2xs"
+                >
+                  <div className="text-[11px] font-black text-slate-800 dark:text-slate-200 group-hover:text-teal-600 flex items-center gap-1">
+                    <span>🇬🇧 English Phonics & TPR</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                    Action words with Simon Says game
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomTopicTitle('১ থেকে ১০ পর্যন্ত মজার গণনা ও বস্তু দিয়ে হিসাব');
+                    setCustomChapterTitle('প্রাথমিক সংখ্যার ধারণা');
+                    setSubject('প্রাথমিক গণিত');
+                    setSelectedGrade('Play');
+                    setPlanLanguage('bn');
+                    setContent(`ব্লক, মার্বেল ও রঙিন ফলমূল ব্যবহার করে হাতে-কলমে ১ থেকে ১০ পর্যন্ত গণনা। ছড়ার মাধ্যমে আঙুল গুনে আনন্দদায়ক শিক্ষা।`);
+                  }}
+                  className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:border-teal-400 text-left transition-all group cursor-pointer shadow-2xs"
+                >
+                  <div className="text-[11px] font-black text-slate-800 dark:text-slate-200 group-hover:text-teal-600 flex items-center gap-1">
+                    <span>🔢 গণিত: বস্তু দিয়ে গণনা</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                    রঙিন খেলনা ও আঙুল গুনে বাস্তব গণনা
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Custom Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">
@@ -710,47 +826,55 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
                   type="text"
                   value={customTopicTitle}
                   onChange={(e) => setCustomTopicTitle(e.target.value)}
-                  placeholder="যেমন: Colors (Red, Blue, Yellow) অথবা আকাইদ ও ঈমান"
-                  className="w-full px-3.5 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 dark:text-slate-100 font-semibold"
+                  placeholder="যেমন: আরবি ৪টি শব্দ আনন্দের সাথে মুখস্থকরণ (ورد, انبج, هدية, يد)"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 dark:text-slate-100 font-semibold"
                   required
                 />
               </div>
 
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                  Chapter / অধ্যায় বা ইউনিট
+                  অধ্যায় / বিভাগ বা বিষয় (ঐচ্ছিক)
                 </label>
                 <input
                   type="text"
                   value={customChapterTitle}
                   onChange={(e) => setCustomChapterTitle(e.target.value)}
-                  placeholder="যেমন: Unit 1: Colors অথবা অধ্যায় ৪"
-                  className="w-full px-3.5 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 dark:text-slate-100"
+                  placeholder="যেমন: আরবি শব্দভাণ্ডার / স্বাধীন পাঠ্যক্রম"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 dark:text-slate-100"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                পাঠের বিস্তারিত বিষয়বস্তু / নির্দেশনা
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-teal-600" />
+                  <span>কী শেখাতে চান ও বিশেষ চাওয়া (শব্দ তালিকা, আনন্দের কৌশল, খেলাধুলা ইত্যাদি)</span>
+                  <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold">
+                  বইয়ের দরকার নেই, বিস্তারিত লিখে দিন
+                </span>
+              </div>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                rows={3}
-                placeholder="এখানে পাঠের মূল বিষয়বস্তু, শিখন লক্ষ্য বা গুরুত্বপূর্ণ পয়েন্ট লিখুন..."
-                className="w-full p-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 dark:text-slate-100"
+                rows={5}
+                placeholder={`যেমন:\nو-ورد গোলাপ\nء-انبج আম\nه-هدية উপহার\nي-يد হাত\nএই শব্দগুলো শিক্ষার্থীদের আনন্দের সাথে, খেলাধুলা ও ছন্দের মাধ্যমে মুখস্থ করাতে হবে।`}
+                className="w-full p-3.5 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 dark:text-slate-100 leading-relaxed font-mono"
               />
             </div>
 
-            {/* Optional Page Range */}
-            <div className="pt-2">
-              <PageRangeSelector
-                ranges={pageRanges}
-                onChange={setPageRanges}
-                accentColor="teal"
-                title="পৃষ্ঠা নম্বর ও সীমা (ঐচ্ছিক)"
-              />
+            {/* Reassurance Footer Badge */}
+            <div className="p-3 bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200/60 dark:border-teal-800/60 rounded-xl flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-medium">
+                <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>এআই নিজের মাস্টার পেডাগোজিক্যাল দক্ষতায় ক্লাসরুমের ধাপ (Warm-up, Fun Games, Guided Memorization, Review), C.W, H.W ও শিখনফল নিখুঁতভাবে তৈরি করবে।</span>
+              </div>
+              <span className="text-[11px] font-bold text-teal-700 dark:text-teal-400 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-teal-200 dark:border-teal-700 shrink-0">
+                বইয়ের সাহায্য ছাড়া প্রস্তুত
+              </span>
             </div>
           </div>
         )}

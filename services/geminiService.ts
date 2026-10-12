@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
-import { LessonPlanRequest, QuizRequest, QuizResponse, ExerciseRequest, GeneratedExercise, DetailedPlanRequest, DetailedLessonPlan, getGradeAgeIntellectProfile, TOCChapter } from "../types";
+import { LessonPlanRequest, QuizRequest, QuizResponse, ExerciseRequest, GeneratedExercise, DetailedPlanRequest, DetailedLessonPlan, getGradeAgeIntellectProfile, TOCChapter, TOCTopic } from "../types";
+import { normalizeChapters } from "../utils/tocNormalizer";
 
 const SYSTEM_INSTRUCTION_BASE = `
     আপনি 'মাদরাসাতুস সুন্নাহ'-এর একজন অত্যন্ত দক্ষ, বিচক্ষণ এবং অভিজ্ঞ শিক্ষক ও কারিকুলাম ডিজাইনার (Master Curriculum Designer & Teacher).
@@ -998,11 +999,29 @@ export const generateDetailedPlanClient = async (
     - বাংলায় শিখনফল অবশ্যই "পাঠ শেষে শিক্ষার্থীরা..." দিয়ে শুরু হবে এবং সাফল্য নির্ণায়ক "সাফল্য নির্ণায়ক: আমি পারি:" দিয়ে শুরু হবে।
     - শিক্ষক কার্যক্রম, শিক্ষার্থী কার্যক্রম এবং ধাপসমূহ বাংলায় হবে।`;
 
+  const standaloneRule = request.isStandaloneTopic
+    ? `========================================================================================================
+    **স্বাধীন বিষয় / বই ছাড়া সরাসরি স্বয়ংক্রিয় পেডাগোজিক্যাল প্ল্যান (AUTONOMOUS CREATION - NO BOOK DEPENDENCY):**
+    ========================================================================================================
+    - এই পাঠ পরিকল্পনাটি কোনো নির্দিষ্ট বই বা পিডিএফের উপর নির্ভরশীল নয়। শিক্ষক বই ছাড়াই সরাসরি বিষয় উল্লেখ করেছেন।
+    - আপনি কোনো বইয়ের সাহায্য ছাড়াই নিজের মাস্টার পেডাগোজিক্যাল জ্ঞান দিয়ে এই বিষয়ের উপর একটি স্বয়ংসম্পূর্ণ, বিস্তারিত ও আনন্দদায়ক লেসন প্ল্যান তৈরি করবেন।
+    - শিক্ষক যে বিষয়/শব্দগুলো দিয়েছেন:
+      • মূল টপিক: "${effectiveTopic}"
+      • নির্দেশনা ও বিবরণ: "${request.content || ''}"
+    - **বিশেষ গুরুত্ব (যদি শব্দ মুখস্থকরণ বা ভাষা শিক্ষা হয়, যেমন: আরবি শব্দাদি আনন্দের সাথে মুখস্থকরণ):**
+      • মুখস্থ করানোর পদ্ধতি হবে সম্পূর্ণ আকর্ষণীয় ও আনন্দদায়ক (Fun & Playful Memorization Techniques)।
+      • শিক্ষক ও শিক্ষার্থীদের কার্যক্রমে (teacherDoes & childrenDo) আনন্দদায়ক খেলাধুলা (Educational Games e.g. Magic Flashcard, Guess the Word, Action/Mime, Sound & Echo, Fast Finger), ছড়া/রিদম, শারীরিক অঙ্গভঙ্গি (TPR) ও সক্রিয় অংশগ্রহণ বিশদভাবে বর্ণনা করুন।
+      • একঘেয়ে পুনরাবৃত্তি বাদ দিয়ে আনন্দদায়ক কৌশলে ক্লাসের ভেতরই শিশুদের মুখস্থ করিয়ে নেওয়ার স্পষ্ট ধাপ উল্লেখ করুন।
+    ========================================================================================================`
+    : '';
+
   const prompt = `
     You are a master teacher trainer and curriculum developer at Madrasatus Sunnah.
     Create an exact 100% copy-to-copy Lesson Plan matching the official "Lesson Plan Template" standard.
 
     ${langRule}
+
+    ${standaloneRule}
 
     **Input Details:**
     • Class: ${effectiveClass}
@@ -1011,7 +1030,7 @@ export const generateDetailedPlanClient = async (
     • Teacher's Name: ${effectiveTeacher}
     • Duration per session: ${duration} mins
     • Plan Scope / Total Days: ${planDays} day(s) ${planDays > 1 ? `(Break down into sequential Day 1 to Day ${planDays} stages or comprehensive procedural activities spanning ${planDays} days)` : ''}
-    • Chapter/Context: ${request.chapterTitle || "General"}
+    • Chapter/Context: ${request.chapterTitle || (request.isStandaloneTopic ? "স্বাধীন পাঠ্যক্রম" : "General")}
     ${pageRangeDesc ? `• Selected Page Range(s) / পৃষ্ঠা সীমা: ${pageRangeDesc}` : ''}
     • Content / Context: ${request.content || "Analyze topic."}
     ${request.additionalInstructions ? `• Special: ${request.additionalInstructions}` : ''}
@@ -1172,6 +1191,9 @@ export const extractPdfTableOfContents = async (
     if (onProgress) onProgress(90, "সূচিপত্র সাজানো হচ্ছে...");
     const data = await response.json();
     if (onProgress) onProgress(100, "সূচিপত্র প্রস্তুত!");
+    if (data && Array.isArray(data.chapters)) {
+      data.chapters = normalizeChapters(data.chapters);
+    }
     return data;
   } catch (error: any) {
     console.warn("TOC extraction failed, using client-side fallback:", error);
@@ -1278,6 +1300,121 @@ export const extractPdfTableOfContentsClient = async (
     throw lastError || new Error("সূচিপত্র বিশ্লেষণ করা সম্ভব হয়নি।");
   }
 
-  return JSON.parse(resultText);
+  const parsed = JSON.parse(resultText);
+  if (parsed && Array.isArray(parsed.chapters)) {
+    parsed.chapters = normalizeChapters(parsed.chapters);
+  }
+  return parsed;
+};
+
+/**
+ * Generates rich subheadings for a chapter that lacks them
+ */
+export const generateChapterSubheadings = async (params: {
+  chapterTitle: string;
+  bookTitle?: string;
+  gradeLevel?: string;
+  category?: string;
+  startPage?: number;
+  endPage?: number;
+  count?: number;
+}): Promise<TOCTopic[]> => {
+  try {
+    const response = await fetch("/api/generate-subheadings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data.topics) && data.topics.length > 0) {
+        return data.topics.map((t: any, i: number) => ({
+          id: `gen_t_${Date.now()}_${i + 1}`,
+          topicNumber: (t.topicNumber || `${i + 1}`).toString(),
+          title: (t.title || `পাঠ ${i + 1}`).trim(),
+          pageNumber: Number(t.pageNumber || params.startPage || 1),
+          endPageNumber: Number(t.endPageNumber || params.endPage || params.startPage || 1),
+          contentExcerpt: (t.contentExcerpt || t.title || '').trim()
+        }));
+      }
+    }
+  } catch (e) {
+    console.warn("Backend generate-subheadings failed, trying client fallback:", e);
+  }
+
+  // Client-side fallback with GoogleGenAI
+  const apiKey = getClientApiKey();
+  if (apiKey) {
+    try {
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: { headers: { "User-Agent": "aistudio-build" } }
+      });
+      const prompt = `
+        অধ্যায়ের নাম: "${params.chapterTitle}"
+        বইয়ের নাম: "${params.bookTitle || ''}"
+        শ্রেণি: "${params.gradeLevel || 'পঞ্চম শ্রেণি'}"
+        বিষয়: "${params.category || ''}"
+        পৃষ্ঠা: ${params.startPage || 1} - ${params.endPage || 20}
+
+        এই অধ্যায়ের জন্য ${params.count || 4}টি প্রাসঙ্গিক পাঠ/উপশিরোনাম (Subheadings) তৈরি করুন।
+        JSON ফরম্যাট:
+        {
+          "topics": [
+            {
+              "topicNumber": "১",
+              "title": "পাঠ ১: শিরোনাম",
+              "pageNumber": ${params.startPage || 1},
+              "endPageNumber": ${(params.startPage || 1) + 2},
+              "contentExcerpt": "পাঠের সারসংক্ষেপ"
+            }
+          ]
+        }
+      `;
+
+      const res = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.3
+        }
+      });
+
+      const parsed = JSON.parse(res.text || "{}");
+      if (Array.isArray(parsed.topics)) {
+        return parsed.topics.map((t: any, i: number) => ({
+          id: `gen_t_${Date.now()}_${i + 1}`,
+          topicNumber: (t.topicNumber || `${i + 1}`).toString(),
+          title: (t.title || `পাঠ ${i + 1}`).trim(),
+          pageNumber: Number(t.pageNumber || params.startPage || 1),
+          endPageNumber: Number(t.endPageNumber || params.endPage || params.startPage || 1),
+          contentExcerpt: (t.contentExcerpt || t.title || '').trim()
+        }));
+      }
+    } catch (clientErr) {
+      console.warn("Client generate subheadings error:", clientErr);
+    }
+  }
+
+  return [
+    {
+      id: `gen_t_${Date.now()}_1`,
+      topicNumber: '১',
+      title: `${params.chapterTitle} - প্রাথমিক আলোচনা ও পরিচিতি`,
+      pageNumber: params.startPage || 1,
+      endPageNumber: params.startPage || 1,
+      contentExcerpt: `${params.chapterTitle} সম্পর্কিত মৌলিক জ্ঞান ও প্রাথমিক আলোচনা`
+    },
+    {
+      id: `gen_t_${Date.now()}_2`,
+      topicNumber: '২',
+      title: `${params.chapterTitle} - মূল বিষয়বস্তু ও ব্যাখ্যা`,
+      pageNumber: params.startPage || 1,
+      endPageNumber: params.endPage || params.startPage || 1,
+      contentExcerpt: `${params.chapterTitle} সম্পর্কিত বিশদ আলোচনা ও প্রায়োগিক দিক`
+    }
+  ];
 };
 

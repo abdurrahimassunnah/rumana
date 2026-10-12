@@ -345,6 +345,7 @@ export interface DetailedPlanRequest {
   teachingMethodology?: string;
   additionalInstructions?: string;
   language?: PlanLanguage | string;
+  isStandaloneTopic?: boolean;
 }
 
 // ==========================================
