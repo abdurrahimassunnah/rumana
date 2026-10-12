@@ -624,6 +624,10 @@ const App: React.FC = () => {
         setState(prev => ({ ...prev, progress, statusMessage: message }));
       });
 
+      if (planData) {
+        planData.language = request.language || 'bn';
+      }
+
       setCurrentDetailedPlan(planData);
 
       const newItem: HistoryItem = {

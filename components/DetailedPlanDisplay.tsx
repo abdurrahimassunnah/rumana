@@ -180,6 +180,7 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
   const [plan, setPlan] = useState<DetailedLessonPlan>(() => normalizePlan(initialPlan));
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeLangOverride, setActiveLangOverride] = useState<'auto' | 'ar' | 'bn' | 'en'>('auto');
   const [fontMode, setFontMode] = useState<'auto' | 'amiri' | 'kalpurush' | 'times'>('auto');
   const printableRef = useRef<HTMLDivElement>(null);
 
@@ -187,8 +188,8 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
   const detectLanguage = (p: DetailedLessonPlan): 'ar' | 'bn' | 'en' => {
     // 1. If explicitly defined in plan.language, HONOR IT DIRECTLY
     if (p.language === 'bn' || p.language === 'bangla' || p.language === 'bengali') return 'bn';
-    if (p.language === 'ar' || p.language === 'arabic') return 'ar';
     if (p.language === 'en' || p.language === 'english') return 'en';
+    if (p.language === 'ar' || p.language === 'arabic') return 'ar';
 
     // 2. Count characters across content
     const combined = [
@@ -205,18 +206,17 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
     const bnCount = (combined.match(/[\u0980-\u09FF]/g) || []).length;
     const enCount = (combined.match(/[a-zA-Z]/g) || []).length;
 
-    // If there is significant Bengali text, it is BENGALI (LTR)
-    if (bnCount >= 10 || (bnCount > 0 && bnCount >= arCount * 0.2)) return 'bn';
-    // If predominantly Arabic without Bengali
-    if (arCount > 20 && arCount > enCount) return 'ar';
+    // Strict Rule: If ANY Bengali text exists (even 1 character), user asked for Bengali output! Bengali is LTR!
     if (bnCount > 0) return 'bn';
+    // If predominantly Arabic without Bengali
+    if (arCount > 15 && arCount > enCount) return 'ar';
     return 'en';
   };
 
   const autoLang = detectLanguage(plan);
-  const effectiveLang: 'ar' | 'bn' | 'en' = fontMode === 'auto' 
-    ? autoLang 
-    : (fontMode === 'amiri' ? 'ar' : (fontMode === 'kalpurush' ? 'bn' : 'en'));
+  const effectiveLang: 'ar' | 'bn' | 'en' = activeLangOverride !== 'auto'
+    ? activeLangOverride
+    : (fontMode === 'amiri' ? 'ar' : fontMode === 'kalpurush' ? 'bn' : fontMode === 'times' ? 'en' : autoLang);
 
   const isAr = effectiveLang === 'ar';
   const isBn = effectiveLang === 'bn';
@@ -572,6 +572,58 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
 
         {/* Actions Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Explicit Language & Direction Selector */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 px-2">
+              ভাষা / Direction:
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveLangOverride('bn');
+                setFontMode('kalpurush');
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                isBn
+                  ? 'bg-teal-700 text-white shadow-xs' 
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+              title="বাংলা লেআউট (বাম থেকে ডানে - LTR)"
+            >
+              🇧🇩 বাংলা (LTR)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveLangOverride('en');
+                setFontMode('times');
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                !isBn && !isAr
+                  ? 'bg-teal-700 text-white shadow-xs' 
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+              title="English layout (Left to Right - LTR)"
+            >
+              🇬🇧 English (LTR)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveLangOverride('ar');
+                setFontMode('amiri');
+              }}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                isAr
+                  ? 'bg-teal-700 text-white shadow-xs' 
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+              title="عربي (من اليمين لليسار - RTL)"
+            >
+              🇸🇦 العربية (RTL)
+            </button>
+          </div>
+
           {/* Font Selector / Indicator */}
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 px-2 flex items-center gap-1">
@@ -582,31 +634,31 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
               type="button"
               onClick={() => setFontMode('amiri')}
               className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
-                isAr
+                fontMode === 'amiri' || (fontMode === 'auto' && isAr)
                   ? 'bg-emerald-600 text-white shadow-xs' 
                   : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
               title="الأميري (عربي)"
             >
-              الأميري (عربي)
+              الأميري
             </button>
             <button
               type="button"
               onClick={() => setFontMode('kalpurush')}
               className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
-                isBn && fontMode !== 'times' && fontMode !== 'amiri'
+                fontMode === 'kalpurush' || (fontMode === 'auto' && isBn)
                   ? 'bg-emerald-600 text-white shadow-xs' 
                   : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
               title="কালপুরুষ ফন্ট (বাংলা)"
             >
-              কালপুরুষ (বাংলা)
+              কালপুরুষ
             </button>
             <button
               type="button"
               onClick={() => setFontMode('times')}
               className={`px-2 py-1 rounded-lg text-xs font-serif font-bold transition-all ${
-                !isBn && !isAr && fontMode === 'times'
+                fontMode === 'times' || (fontMode === 'auto' && !isBn && !isAr)
                   ? 'bg-emerald-600 text-white shadow-xs' 
                   : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
