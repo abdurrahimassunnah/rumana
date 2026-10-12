@@ -46,6 +46,8 @@ interface TOCSelectorProps {
   onSelectTopic?: (chapter: TOCChapter, topic: TOCTopic) => void;
   onToggleTopic?: (chapter: TOCChapter, topic: TOCTopic) => void;
   onSelectFullChapter?: (chapter: TOCChapter) => void;
+  onSelectMultipleTopics?: (topics: TOCTopic[], chapter?: TOCChapter) => void;
+  onClearAllSelected?: () => void;
   onUploadPdf?: (files: File | File[]) => void;
   isExtractingPdf?: boolean;
   extractionProgress?: string;
@@ -131,13 +133,15 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
   onSelectTopic,
   onToggleTopic,
   onSelectFullChapter,
+  onSelectMultipleTopics,
+  onClearAllSelected,
   onUploadPdf,
   isExtractingPdf = false,
   extractionProgress = '',
   accentColor = 'emerald',
   title = 'বইয়ের সূচিপত্র থেকে অধ্যায় ও বিষয় নির্বাচন করুন',
   compact = false,
-  allowMultiSelect = false
+  allowMultiSelect = true
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [subTopicSearch, setSubTopicSearch] = useState('');
@@ -287,8 +291,11 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
   };
 
   const isTopicChecked = (topicId: string) => {
+    if (selectedTopics && selectedTopics.length > 0) {
+      return selectedTopics.some(t => t.id === topicId);
+    }
     if (selectedTopic && selectedTopic.id === topicId) return true;
-    return selectedTopics.some(t => t.id === topicId);
+    return false;
   };
 
   const isChapterFullySelected = (chapter: TOCChapter) => {
@@ -300,6 +307,50 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
     if (!chapter.topics || chapter.topics.length === 0) return false;
     const count = chapter.topics.filter(t => isTopicChecked(t.id)).length;
     return count > 0 && count < chapter.topics.length;
+  };
+
+  // Toggle all topics of a chapter
+  const handleToggleChapter = (chapter: TOCChapter) => {
+    if (!chapter.topics || chapter.topics.length === 0) {
+      if (onSelectFullChapter) onSelectFullChapter(chapter);
+      return;
+    }
+
+    const fullySelected = isChapterFullySelected(chapter);
+
+    if (onSelectMultipleTopics) {
+      if (fullySelected) {
+        const chTopicIds = new Set(chapter.topics.map(t => t.id));
+        const remaining = selectedTopics.filter(t => !chTopicIds.has(t.id));
+        onSelectMultipleTopics(remaining, chapter);
+      } else {
+        const existingIds = new Set(selectedTopics.map(t => t.id));
+        const toAdd = chapter.topics.filter(t => !existingIds.has(t.id));
+        onSelectMultipleTopics([...selectedTopics, ...toAdd], chapter);
+      }
+    } else if (onSelectFullChapter) {
+      onSelectFullChapter(chapter);
+    } else if (onToggleTopic) {
+      chapter.topics.forEach(t => {
+        if (fullySelected) {
+          if (isTopicChecked(t.id)) onToggleTopic(chapter, t);
+        } else {
+          if (!isTopicChecked(t.id)) onToggleTopic(chapter, t);
+        }
+      });
+    }
+  };
+
+  // Select all chapters and subheadings
+  const handleSelectAllInBook = () => {
+    const allTopics = activeChapters.flatMap(c => c.topics || []);
+    if (onSelectMultipleTopics) {
+      onSelectMultipleTopics(allTopics, activeChapters[0]);
+    } else if (onSelectFullChapter) {
+      activeChapters.forEach(c => {
+        if (!isChapterFullySelected(c)) onSelectFullChapter(c);
+      });
+    }
   };
 
   // List of all chapters that currently have selected topics
@@ -1163,8 +1214,37 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-start">
               {/* Left Column: Chapters / Main Headings */}
               <div className="md:col-span-5 space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">
-                  প্রধান অধ্যায়সমূহ ({filteredChapters.length})
+                <div className="flex items-center justify-between pb-1 px-1">
+                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    প্রধান অধ্যায়সমূহ ({filteredChapters.length})
+                  </div>
+                  {allowMultiSelect && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSelectAllInBook}
+                        className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                        title="বইয়ের সকল অধ্যায় ও পাঠ নির্বাচন করুন"
+                      >
+                        সব সিলেক্ট
+                      </button>
+                      <span className="text-slate-300 dark:text-slate-700">|</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onClearAllSelected) {
+                            onClearAllSelected();
+                          } else if (onSelectMultipleTopics) {
+                            onSelectMultipleTopics([]);
+                          }
+                        }}
+                        className="text-[10px] font-bold text-rose-500 hover:underline cursor-pointer"
+                        title="সব সিলেকশন বাতিল করুন"
+                      >
+                        ক্লিয়ার
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {filteredChapters.map((ch, idx) => {
@@ -1177,7 +1257,7 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                     <div
                       key={ch.id}
                       onClick={() => setActiveChapterId(ch.id)}
-                      className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2.5 ${
+                      className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2.5 group ${
                         isActive
                           ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 ring-1 ring-emerald-500/20 text-slate-900 dark:text-white shadow-2xs'
                           : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
@@ -1202,13 +1282,30 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                         </div>
                       </div>
 
-                      {isFull ? (
-                        <CheckSquare className="w-4 h-4 text-emerald-600 shrink-0" />
-                      ) : isPartial ? (
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-                      ) : (
-                        <ChevronRight className={`w-4 h-4 text-slate-400 shrink-0 ${isActive ? 'text-emerald-600' : ''}`} />
-                      )}
+                      {/* Interactive Chapter Checkbox for One-Click Toggle */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleChapter(ch);
+                        }}
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all border cursor-pointer ${
+                          isFull
+                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
+                            : isPartial
+                            ? 'bg-emerald-100 dark:bg-emerald-950/80 border-emerald-500 text-emerald-700 dark:text-emerald-300'
+                            : 'border-slate-300 dark:border-slate-700 hover:border-emerald-500 bg-white dark:bg-slate-800 text-transparent hover:text-slate-300'
+                        }`}
+                        title={isFull ? 'অধ্যায়ের সকল পাঠ আনসিলেক্ট করুন' : 'এই অধ্যায়ের সকল পাঠ সিলেক্ট করুন'}
+                      >
+                        {isFull ? (
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        ) : isPartial ? (
+                          <span className="w-2 h-2 rounded-xs bg-emerald-600" />
+                        ) : (
+                          <Check className="w-3.5 h-3.5" />
+                        )}
+                      </button>
                     </div>
                   );
                 })}
@@ -1236,16 +1333,20 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                         </span>
                       </div>
 
-                      {onSelectFullChapter && (
-                        <button
-                          type="button"
-                          onClick={() => onSelectFullChapter(currentChapter)}
-                          className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
-                        >
-                          <CheckSquare className="w-3.5 h-3.5" />
-                          <span>পুরো অধ্যায় নির্বাচন</span>
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleChapter(currentChapter)}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0 self-start sm:self-auto ${
+                          isChapterFullySelected(currentChapter)
+                            ? 'bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-100'
+                            : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                        }`}
+                      >
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        <span>
+                          {isChapterFullySelected(currentChapter) ? 'অধ্যায় আনসিলেক্ট করুন' : 'পুরো অধ্যায় নির্বাচন'}
+                        </span>
+                      </button>
                     </div>
 
                     {/* Subheading quick search if many topics */}
@@ -1339,6 +1440,85 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                     বাম পাশ থেকে একটি অধ্যায় নির্বাচন করুন।
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* SELECTED HEADINGS & SUBHEADINGS SUMMARY BAR */}
+          {allowMultiSelect && (selectedTopics.length > 0 || selectedTopic) && (
+            <div className="p-3.5 bg-emerald-50/90 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 rounded-2xl shadow-xs space-y-2.5 animate-in fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>নির্বাচিত বিষয়সমূহ:</span>
+                      <span className="text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/80 px-2 py-0.5 rounded-md font-mono">
+                        মোট {selectedTopics.length > 0 ? selectedTopics.length : 1}টি পাঠ / সাব-হেডিং
+                      </span>
+                    </h4>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                      {selectedChaptersWithTopics.length > 0 
+                        ? `${selectedChaptersWithTopics.length}টি অধ্যায়ের অন্তর্ভুক্ত বিষয়াদি নির্বাচিত হয়েছে` 
+                        : 'নির্বাচিত পাঠসমূহ'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onClearAllSelected) {
+                        onClearAllSelected();
+                      } else if (onSelectMultipleTopics) {
+                        onSelectMultipleTopics([]);
+                      }
+                    }}
+                    className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900/60 shadow-2xs hover:bg-rose-50 transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3" />
+                    <span>সব বাতিল করুন</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Badges of selected topics */}
+              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pt-1">
+                {(selectedTopics.length > 0 ? selectedTopics : (selectedTopic ? [selectedTopic] : [])).map(topic => {
+                  const parentCh = activeChapters.find(c => c.topics?.some(t => t.id === topic.id));
+                  return (
+                    <span
+                      key={topic.id}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 text-xs font-medium text-slate-800 dark:text-slate-200 shadow-2xs group"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                      <span className="truncate max-w-[200px]" title={topic.title}>
+                        {topic.title}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                        (পৃ: {topic.pageNumber}{topic.endPageNumber ? `-${topic.endPageNumber}` : ''})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (parentCh && onToggleTopic) {
+                            onToggleTopic(parentCh, topic);
+                          } else if (onSelectMultipleTopics) {
+                            onSelectMultipleTopics(selectedTopics.filter(t => t.id !== topic.id));
+                          }
+                        }}
+                        className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors ml-0.5 cursor-pointer"
+                        title="এই পাঠটি বাদ দিন"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -66,6 +66,7 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
   // TOC Selection
   const [selectedChapter, setSelectedChapter] = useState<TOCChapter>(MADRASAH_CLASS_5_TOC[3]);
   const [selectedTopic, setSelectedTopic] = useState<TOCTopic>(MADRASAH_CLASS_5_TOC[3].topics[9]);
+  const [selectedTopics, setSelectedTopics] = useState<TOCTopic[]>([MADRASAH_CLASS_5_TOC[3].topics[9]]);
   
   // Custom Topic Data
   const [customTopicTitle, setCustomTopicTitle] = useState('Colors (Red, Blue, Yellow)');
@@ -80,6 +81,7 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       setCustomChapterTitle(firstCh.title);
       if (firstCh.topics && firstCh.topics.length > 0) {
         setSelectedTopic(firstCh.topics[0]);
+        setSelectedTopics([firstCh.topics[0]]);
         setCustomTopicTitle(`${firstCh.topics[0].topicNumber ? `${firstCh.topics[0].topicNumber}. ` : ''}${firstCh.topics[0].title}`);
         setContent(firstCh.topics[0].contentExcerpt || `বইয়ের সংশ্লিষ্ট পাঠ: ${firstCh.topics[0].title} (পৃষ্ঠা ${firstCh.topics[0].pageNumber}${firstCh.topics[0].endPageNumber ? `-${firstCh.topics[0].endPageNumber}` : ''})`);
         
@@ -117,16 +119,86 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
     loadSavedFiles();
   }, []);
 
-  const handleTopicSelect = (chapter: TOCChapter, topic: TOCTopic) => {
-    setSelectedChapter(chapter);
-    setSelectedTopic(topic);
-    setCustomChapterTitle(chapter.title);
-    setCustomTopicTitle(`${topic.topicNumber ? `${topic.topicNumber}. ` : ''}${topic.title}`);
-    setContent(topic.contentExcerpt || `বইয়ের সংশ্লিষ্ট পাঠ: ${topic.title} (পৃষ্ঠা ${topic.pageNumber}${topic.endPageNumber ? `-${topic.endPageNumber}` : ''})`);
+  const updateSelectionData = (topics: TOCTopic[], chapter?: TOCChapter | null) => {
+    setSelectedTopics(topics);
+    if (chapter) {
+      setSelectedChapter(chapter);
+      setCustomChapterTitle(chapter.title);
+    }
 
-    const start = topic.pageNumber || 1;
-    const end = topic.endPageNumber || topic.pageNumber || 5;
-    setPageRanges([{ id: `rng_${Date.now()}`, start, end }]);
+    if (topics.length === 0) {
+      setSelectedTopic(null);
+      setCustomTopicTitle('');
+      setContent('');
+      return;
+    }
+
+    const primaryTopic = topics[0];
+    setSelectedTopic(primaryTopic);
+
+    if (topics.length === 1) {
+      setCustomTopicTitle(`${primaryTopic.topicNumber ? `${primaryTopic.topicNumber}. ` : ''}${primaryTopic.title}`);
+      setContent(primaryTopic.contentExcerpt || `বইয়ের সংশ্লিষ্ট পাঠ: ${primaryTopic.title} (পৃষ্ঠা ${primaryTopic.pageNumber}${primaryTopic.endPageNumber ? `-${primaryTopic.endPageNumber}` : ''})`);
+      const start = primaryTopic.pageNumber || 1;
+      const end = primaryTopic.endPageNumber || primaryTopic.pageNumber || 5;
+      setPageRanges([{ id: `rng_${Date.now()}`, start, end }]);
+    } else {
+      const titles = topics.map(t => `${t.topicNumber ? `${t.topicNumber}. ` : ''}${t.title}`).join(', ');
+      setCustomTopicTitle(`${titles} (একত্রে ${topics.length}টি পাঠ)`);
+
+      const contentLines = topics.map((t, idx) => 
+        `• [পাঠ ${idx + 1}] ${t.title} (পৃষ্ঠা ${t.pageNumber}${t.endPageNumber ? `-${t.endPageNumber}` : ''})${t.contentExcerpt ? `: ${t.contentExcerpt}` : ''}`
+      ).join('\n');
+      setContent(`একত্রে নির্বাচিত পাঠ ও বিষয়সমূহ (${topics.length}টি):\n${contentLines}`);
+
+      const pages = topics.flatMap(t => {
+        const p = [];
+        if (t.pageNumber) p.push(Number(t.pageNumber));
+        if (t.endPageNumber) p.push(Number(t.endPageNumber));
+        return p;
+      }).filter(p => !isNaN(p));
+
+      if (pages.length > 0) {
+        const minPage = Math.min(...pages);
+        const maxPage = Math.max(...pages);
+        setPageRanges([{ id: `rng_${Date.now()}`, start: minPage, end: maxPage }]);
+      }
+    }
+  };
+
+  const handleTopicSelect = (chapter: TOCChapter, topic: TOCTopic) => {
+    handleToggleTopic(chapter, topic);
+  };
+
+  const handleToggleTopic = (chapter: TOCChapter, topic: TOCTopic) => {
+    const exists = selectedTopics.some(t => t.id === topic.id);
+    const updated = exists
+      ? selectedTopics.filter(t => t.id !== topic.id)
+      : [...selectedTopics, topic];
+    updateSelectionData(updated, chapter);
+  };
+
+  const handleSelectFullChapter = (chapter: TOCChapter) => {
+    if (!chapter.topics || chapter.topics.length === 0) {
+      setSelectedChapter(chapter);
+      setCustomChapterTitle(chapter.title);
+      setCustomTopicTitle(`সম্পূর্ণ অধ্যায়: ${chapter.title}`);
+      setContent(`সম্পূর্ণ অধ্যায়: ${chapter.title} (পৃষ্ঠা ${chapter.startPage}-${chapter.endPage})`);
+      setPageRanges([{ id: `rng_${Date.now()}`, start: chapter.startPage, end: chapter.endPage }]);
+      return;
+    }
+
+    const allSelected = chapter.topics.every(t => selectedTopics.some(st => st.id === t.id));
+    let updated: TOCTopic[];
+    if (allSelected) {
+      const chTopicIds = new Set(chapter.topics.map(t => t.id));
+      updated = selectedTopics.filter(t => !chTopicIds.has(t.id));
+    } else {
+      const existingIds = new Set(selectedTopics.map(t => t.id));
+      const toAdd = chapter.topics.filter(t => !existingIds.has(t.id));
+      updated = [...selectedTopics, ...toAdd];
+    }
+    updateSelectionData(updated, chapter);
   };
 
   const handleSelectSavedFile = (stored: StoredFile) => {
@@ -529,22 +601,17 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
               onDeleteSavedBook={onDeleteSavedBook}
               selectedChapter={selectedChapter}
               selectedTopic={selectedTopic}
+              selectedTopics={selectedTopics}
               onSelectTopic={handleTopicSelect}
-              onSelectFullChapter={(ch) => {
-                setSelectedChapter(ch);
-                setCustomChapterTitle(ch.title);
-                if (ch.topics && ch.topics.length > 0) {
-                  setSelectedTopic(ch.topics[0]);
-                  setCustomTopicTitle(ch.title);
-                  const topicList = ch.topics.map(t => `${t.title} (পৃ: ${t.pageNumber})`).join(', ');
-                  setContent(`সম্পূর্ণ অধ্যায়: ${ch.title} (পৃষ্ঠা ${ch.startPage}-${ch.endPage})\nসকল পাঠসমূহ: ${topicList}`);
-                  setPageRanges([{ id: `rng_${Date.now()}`, start: ch.startPage, end: ch.endPage }]);
-                }
-              }}
+              onToggleTopic={handleToggleTopic}
+              onSelectFullChapter={handleSelectFullChapter}
+              onSelectMultipleTopics={(topics, ch) => updateSelectionData(topics, ch)}
+              onClearAllSelected={() => updateSelectionData([], selectedChapter)}
               onUploadPdf={onUploadPdf}
               isExtractingPdf={isExtractingPdf}
               extractionProgress={extractionProgress}
               accentColor="teal"
+              allowMultiSelect={true}
               title="বইয়ের সূচিপত্র থেকে অধ্যায় ও পাঠ নির্বাচন করুন"
             />
 

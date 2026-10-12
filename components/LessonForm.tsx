@@ -223,6 +223,7 @@ const LessonForm: React.FC<LessonFormProps> = ({
   const [sourceTab, setSourceTab] = useState<'toc' | 'upload' | 'custom'>('toc');
   const [selectedChapter, setSelectedChapter] = useState<TOCChapter>(MADRASAH_CLASS_5_TOC[3]);
   const [selectedTopic, setSelectedTopic] = useState<TOCTopic>(MADRASAH_CLASS_5_TOC[3].topics[9]);
+  const [selectedTopics, setSelectedTopics] = useState<TOCTopic[]>([MADRASAH_CLASS_5_TOC[3].topics[9]]);
   const [file, setFile] = useState<File | null>(null);
   const [duration, setDuration] = useState<number>(5);
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -245,6 +246,7 @@ const LessonForm: React.FC<LessonFormProps> = ({
       setSelectedChapter(firstCh);
       if (firstCh.topics && firstCh.topics.length > 0) {
         setSelectedTopic(firstCh.topics[0]);
+        setSelectedTopics([firstCh.topics[0]]);
         const start = firstCh.topics[0].pageNumber || 1;
         const end = firstCh.topics[0].endPageNumber || firstCh.topics[0].pageNumber || 10;
         setPageRanges([{ id: 'default', start, end }]);
@@ -253,25 +255,64 @@ const LessonForm: React.FC<LessonFormProps> = ({
     }
   }, [uploadedChapters]);
 
+  const updateLessonSelection = (topics: TOCTopic[], chapter?: TOCChapter) => {
+    setSelectedTopics(topics);
+    if (chapter) setSelectedChapter(chapter);
+
+    if (topics.length === 0) {
+      setSelectedTopic(null as any);
+      setContext(chapter ? `অধ্যায়: ${chapter.title}` : '');
+      return;
+    }
+
+    const first = topics[0];
+    setSelectedTopic(first);
+
+    const pages = topics.flatMap(t => {
+      const arr = [];
+      if (t.pageNumber) arr.push(Number(t.pageNumber));
+      if (t.endPageNumber) arr.push(Number(t.endPageNumber));
+      return arr;
+    }).filter(n => !isNaN(n));
+
+    const minPage = pages.length > 0 ? Math.min(...pages) : (first.pageNumber || 1);
+    const maxPage = pages.length > 0 ? Math.max(...pages) : (first.endPageNumber || first.pageNumber || 10);
+
+    setPageRanges([{ id: 'default', start: minPage, end: maxPage }]);
+
+    if (topics.length === 1) {
+      setContext(first.contentExcerpt || `অধ্যায়: ${(chapter || selectedChapter)?.title}\nপাঠ: ${first.title} (পৃষ্ঠা ${minPage}-${maxPage})`);
+    } else {
+      const topicList = topics.map((t, i) => `${i + 1}. ${t.title} (পৃষ্ঠা ${t.pageNumber}${t.endPageNumber ? `-${t.endPageNumber}` : ''})`).join('\n');
+      setContext(`একত্রে নির্বাচিত ${topics.length}টি পাঠসমূহ:\n${topicList}\nঅধ্যায়: ${(chapter || selectedChapter)?.title || ''}`);
+    }
+  };
+
+  const handleToggleTopic = (chapter: TOCChapter, topic: TOCTopic) => {
+    const exists = selectedTopics.some(t => t.id === topic.id);
+    const updated = exists 
+      ? selectedTopics.filter(t => t.id !== topic.id)
+      : [...selectedTopics, topic];
+    updateLessonSelection(updated, chapter);
+  };
+
   const handleTopicSelect = (chapter: TOCChapter, topic: TOCTopic) => {
-    setSelectedChapter(chapter);
-    setSelectedTopic(topic);
-    const start = topic.pageNumber || 1;
-    const end = topic.endPageNumber || topic.pageNumber || 10;
-    setPageRanges([{ id: 'default', start, end }]);
-    setContext(topic.contentExcerpt || `অধ্যায়: ${chapter.title}\nপাঠ: ${topic.title} (পৃষ্ঠা ${start}-${end})`);
+    handleToggleTopic(chapter, topic);
   };
 
   const handleSelectFullChapter = (chapter: TOCChapter) => {
-    setSelectedChapter(chapter);
-    if (chapter.topics && chapter.topics.length > 0) {
-      setSelectedTopic(chapter.topics[0]);
+    if (!chapter.topics || chapter.topics.length === 0) return;
+    const allSelected = chapter.topics.every(t => selectedTopics.some(st => st.id === t.id));
+    let updated: TOCTopic[];
+    if (allSelected) {
+      const chTopicIds = new Set(chapter.topics.map(t => t.id));
+      updated = selectedTopics.filter(t => !chTopicIds.has(t.id));
+    } else {
+      const existingIds = new Set(selectedTopics.map(t => t.id));
+      const toAdd = chapter.topics.filter(t => !existingIds.has(t.id));
+      updated = [...selectedTopics, ...toAdd];
     }
-    const start = chapter.startPage || 1;
-    const end = chapter.endPage || start + 10;
-    setPageRanges([{ id: 'default', start, end }]);
-    const excerpts = (chapter.topics || []).map(t => `${t.title} (পৃ: ${t.pageNumber})`).join(', ');
-    setContext(`সম্পূর্ণ অধ্যায়: ${chapter.title} (পৃষ্ঠা ${start}-${end})\nঅন্তর্ভুক্ত পাঠসমূহ: ${excerpts}`);
+    updateLessonSelection(updated, chapter);
   };
 
   // Stored file states
@@ -720,12 +761,17 @@ const LessonForm: React.FC<LessonFormProps> = ({
                 onDeleteSavedBook={onDeleteSavedBook}
                 selectedChapter={selectedChapter}
                 selectedTopic={selectedTopic}
+                selectedTopics={selectedTopics}
                 onSelectTopic={handleTopicSelect}
+                onToggleTopic={handleToggleTopic}
                 onSelectFullChapter={handleSelectFullChapter}
+                onSelectMultipleTopics={(topics, ch) => updateLessonSelection(topics, ch)}
+                onClearAllSelected={() => updateLessonSelection([], selectedChapter)}
                 onUploadPdf={onUploadPdf}
                 isExtractingPdf={isExtractingPdf}
                 extractionProgress={extractionProgress}
                 accentColor="emerald"
+                allowMultiSelect={true}
                 title="বইয়ের সূচিপত্র থেকে অধ্যায় ও পাঠ নির্বাচন করুন"
               />
             </div>
