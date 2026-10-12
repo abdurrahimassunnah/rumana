@@ -185,6 +185,12 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
 
   // Detect whether plan is Arabic, Bengali, or English
   const detectLanguage = (p: DetailedLessonPlan): 'ar' | 'bn' | 'en' => {
+    // 1. If explicitly defined in plan.language, HONOR IT DIRECTLY
+    if (p.language === 'bn' || p.language === 'bangla' || p.language === 'bengali') return 'bn';
+    if (p.language === 'ar' || p.language === 'arabic') return 'ar';
+    if (p.language === 'en' || p.language === 'english') return 'en';
+
+    // 2. Count characters across content
     const combined = [
       p.topic || '',
       p.subject || '',
@@ -199,8 +205,11 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
     const bnCount = (combined.match(/[\u0980-\u09FF]/g) || []).length;
     const enCount = (combined.match(/[a-zA-Z]/g) || []).length;
 
-    if (arCount > 10 || (arCount > bnCount && arCount > enCount)) return 'ar';
-    if (bnCount >= enCount) return 'bn';
+    // If there is significant Bengali text, it is BENGALI (LTR)
+    if (bnCount >= 10 || (bnCount > 0 && bnCount >= arCount * 0.2)) return 'bn';
+    // If predominantly Arabic without Bengali
+    if (arCount > 20 && arCount > enCount) return 'ar';
+    if (bnCount > 0) return 'bn';
     return 'en';
   };
 
@@ -220,30 +229,30 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
 
   // Localized UI Labels
   const labels = {
-    docTitle: isAr ? 'خطة الدرس' : 'Lesson Plan',
-    classLabel: isAr ? 'الصف:' : 'Class:',
-    topicLabel: isAr ? 'الموضوع:' : 'Topic:',
-    subjectLabel: isAr ? 'المادة:' : 'Subject:',
-    teacherLabel: isAr ? 'اسم المعلم:' : 'Teacher’s name:',
-    durationLabel: isAr ? 'المدة:' : 'Duration:',
-    materialsLabel: isAr ? 'الوسائل التعليمية:' : 'Materials:',
-    learningObjectiveLabel: isAr ? 'الأهداف التعليمية:' : 'Learning Objective:',
-    successCriteriaLabel: isAr ? 'معايير النجاح: أنا أستطيع:' : 'Success criteria: I can:',
-    procedureSectionTitle: isAr ? 'خطوات سير الدرس' : 'Lesson Procedure',
-    stagesTimeHeader: isAr ? 'المرحلة / الزمن' : 'Stages/Time',
-    procedureHeader: isAr ? 'الإجراءات والأنشطة التعليمية' : 'Procedure',
-    intHeader: isAr ? 'نمط التفاعل (Int)' : 'Int',
-    aidsHeader: isAr ? 'الوسائل (Aids)' : 'Aids',
-    activityTitleLabel: isAr ? 'عنوان النشاط:' : 'Activity Title:',
-    bulletPointsLabel: isAr ? 'خطوات النشاط:' : 'Bullet Points:',
-    childrenDoLabel: isAr ? 'نشاط الطلاب:' : 'Children do:',
-    teacherDoesLabel: isAr ? 'دور المعلم:' : 'Teacher does:',
-    keyToSymbolsTitle: isAr ? 'دليل الرموز والمصطلحات:' : 'Key to symbols:',
-    intKeyHeader: isAr ? 'نمط التفاعل (Int)' : 'Int = interaction pattern',
-    aidsKeyHeader: isAr ? 'الوسائل التعليمية (Aids)' : 'Aids',
-    teacherSig: isAr ? 'توقيع المعلم والتاريخ' : "Teacher's Signature & Date",
-    supervisorSig: isAr ? 'مدير المدرسة / المشرف الأكاديمي' : 'Head of Madrasah / Academic Supervisor',
-    addCriteria: isAr ? '+ إضافة معيار' : '+ ক্রাইটেরিয়া যোগ',
+    docTitle: isAr ? 'خطة الدرس' : (isBn ? 'লেসন প্ল্যান (পাঠ পরিকল্পনা)' : 'Lesson Plan'),
+    classLabel: isAr ? 'الصف:' : (isBn ? 'শ্রেণি:' : 'Class:'),
+    topicLabel: isAr ? 'الموضوع:' : (isBn ? 'পাঠ / বিষয়:' : 'Topic:'),
+    subjectLabel: isAr ? 'المادة:' : (isBn ? 'বিষয়:' : 'Subject:'),
+    teacherLabel: isAr ? 'اسم المعلم:' : (isBn ? 'শিক্ষকের নাম:' : 'Teacher’s name:'),
+    durationLabel: isAr ? 'المدة:' : (isBn ? 'সময় / ব্যাপ্তি:' : 'Duration:'),
+    materialsLabel: isAr ? 'الوسائل التعليمية:' : (isBn ? 'প্রয়োজনীয় উপকরণ:' : 'Materials:'),
+    learningObjectiveLabel: isAr ? 'الأهداف التعليمية:' : (isBn ? 'শিখনফল (Learning Objective):' : 'Learning Objective:'),
+    successCriteriaLabel: isAr ? 'معايير النجاح: أنا أستطيع:' : (isBn ? 'সাফল্য নির্ণায়ক (Success Criteria): আমি পারি:' : 'Success criteria: I can:'),
+    procedureSectionTitle: isAr ? 'خطوات سير الدرس' : (isBn ? 'পাঠ পরিচালনা প্রক্রিয়া ও কার্যক্রম (Lesson Procedure)' : 'Lesson Procedure'),
+    stagesTimeHeader: isAr ? 'المرحلة / الزمن' : (isBn ? 'স্তর ও সময়' : 'Stages/Time'),
+    procedureHeader: isAr ? 'الإجراءات والأنشطة التعليمية' : (isBn ? 'পাঠ পরিচালনা ও কার্যক্রম (Procedure)' : 'Procedure'),
+    intHeader: isAr ? 'نمط التفاعل (Int)' : (isBn ? 'ইন্ট্যারাকশন (Int)' : 'Int'),
+    aidsHeader: isAr ? 'الوسائل (Aids)' : (isBn ? 'টিচিং এইডস (Aids)' : 'Aids'),
+    activityTitleLabel: isAr ? 'عنوان النشاط:' : (isBn ? 'কার্যক্রমের শিরোনাম:' : 'Activity Title:'),
+    bulletPointsLabel: isAr ? 'خطوات النشاط:' : (isBn ? 'ধাপসমূহ:' : 'Bullet Points:'),
+    childrenDoLabel: isAr ? 'نشاط الطلاب:' : (isBn ? 'শিক্ষার্থীরা যা করবে:' : 'Children do:'),
+    teacherDoesLabel: isAr ? 'دور المعلم:' : (isBn ? 'শিক্ষকের ভূমিকা:' : 'Teacher does:'),
+    keyToSymbolsTitle: isAr ? 'دليل الرموز والمصطلحات:' : (isBn ? 'সংকেত ও প্রতীক নির্দেশিকা (Key to symbols):' : 'Key to symbols:'),
+    intKeyHeader: isAr ? 'نمط التفاعل (Int)' : (isBn ? 'ইন্ট্যারাকশন প্যাটার্ন (Int = interaction pattern)' : 'Int = interaction pattern'),
+    aidsKeyHeader: isAr ? 'الوسائل التعليمية (Aids)' : (isBn ? 'টিচিং এইডস (Aids)' : 'Aids'),
+    teacherSig: isAr ? 'توقيع المعلم والتاريخ' : (isBn ? 'শিক্ষকের স্বাক্ষর ও তারিখ' : "Teacher's Signature & Date"),
+    supervisorSig: isAr ? 'مدير المدرسة / المشرف الأكاديمي' : (isBn ? 'অধ্যক্ষ / সুপারিনটেনডেন্ট / একাডেমিক সুপারভাইজারের স্বাক্ষর' : 'Head of Madrasah / Academic Supervisor'),
+    addCriteria: isAr ? '+ إضافة معيار' : '+ ক্রাইটেরিয়া যোগ',
     addPoint: isAr ? '+ إضافة نقطة' : '+ পয়েন্ট যোগ',
     deleteStep: isAr ? 'حذف المرحلة ✕' : 'ধাপ মুছে ফেলুন ✕'
   };
@@ -495,7 +504,7 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
 
   const handleAddProcedurePoint = (stepIndex: number) => {
     const updated = [...plan.procedures];
-    updated[stepIndex].procedurePoints.push(isAr ? 'نقطة أو توجيه جديد' : 'New instruction or teacher activity point');
+    updated[stepIndex].procedurePoints.push(isAr ? 'نقطة أو توجيه جديد' : (isBn ? 'নতুন শিক্ষক নির্দেশনা বা কার্যক্রম' : 'New instruction or teacher activity point'));
     setPlan({ ...plan, procedures: updated });
   };
 
@@ -507,11 +516,11 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
 
   const handleAddProcedureRow = () => {
     const newStep: LessonProcedureStep = {
-      stageAndTime: isAr ? "مرحلة إضافية\n٥ دقائق" : "Additional Stage\n5 minutes",
-      activityTitle: isAr ? "النشاط: نشاط تعليمي جديد" : "Activity: New Activity",
-      procedurePoints: isAr ? ["يقدم المعلم التعليمات للطلاب", "يطبق الطلاب النشاط بإشراف المعلم"] : ["Teacher gives instructions", "Students practice"],
-      childrenDo: isAr ? "يشارك الطلاب ويتفاعلون بنشاط" : "Participate and respond",
-      teacherDoes: isAr ? "يشرف المعلم ويوجه ويصحح" : "Guides and monitors",
+      stageAndTime: isAr ? "مرحلة إضافية\n٥ دقائق" : (isBn ? "অতিরিক্ত ধাপ\n৫ মিনিট" : "Additional Stage\n5 minutes"),
+      activityTitle: isAr ? "النشاط: نشاط تعليمي جديد" : (isBn ? "কার্যক্রম: নতুন শ্রেণিকক্ষ কার্যক্রম" : "Activity: New Activity"),
+      procedurePoints: isAr ? ["يقدم المعلم التعليمات للطلاب", "يطبق الطلاب النشاط بإشراف المعلم"] : (isBn ? ["শিক্ষক শিক্ষার্থীদের নির্দেশনা প্রদান করবেন", "শিক্ষার্থীরা শিক্ষকের তত্ত্বাবধানে সক্রিয় অনুশীলন করবে"] : ["Teacher gives instructions", "Students practice"]),
+      childrenDo: isAr ? "يشارك الطلاب ويتفاعلون بنشاط" : (isBn ? "শিক্ষার্থীরা সক্রিয়ভাবে অংশগ্রহণ ও অনুশীলন করবে" : "Participate and respond"),
+      teacherDoes: isAr ? "يشرف المعلم ويوجه ويصحح" : (isBn ? "শিক্ষক পর্যবেক্ষণ, পরিচালনা ও সংশোধন করবেন" : "Guides and monitors"),
       intPattern: isAr ? "ف/ك" : "W/C",
       aids: isAr ? "س/ذ" : "SB"
     };
@@ -528,7 +537,7 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
     const num = plan.successCriteria.length + 1;
     setPlan({
       ...plan,
-      successCriteria: [...plan.successCriteria, isAr ? `${num}. معيار نجاح جديد` : `${num}. New success criteria item`]
+      successCriteria: [...plan.successCriteria, isAr ? `${num}. معيار نجاح جديد` : (isBn ? `${num}. নতুন সাফল্য নির্ণায়ক ক্রাইটেরিয়া` : `${num}. New success criteria item`)]
     });
   };
 

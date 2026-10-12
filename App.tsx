@@ -37,6 +37,7 @@ import {
   TOCChapter,
   SavedBook
 } from './types';
+import { normalizeChapters } from './utils/tocNormalizer';
 import { 
   generateExercise, 
   generateLessonPlan, 
@@ -93,7 +94,11 @@ const App: React.FC = () => {
   const [savedBooks, setSavedBooks] = useState<SavedBook[]>(() => {
     try {
       const stored = localStorage.getItem('madrasahSavedBooks');
-      return stored ? JSON.parse(stored) : [];
+      const parsed: SavedBook[] = stored ? JSON.parse(stored) : [];
+      return parsed.map(b => ({
+        ...b,
+        chapters: normalizeChapters(b.chapters)
+      }));
     } catch (e) {
       console.error("Failed to read saved books from localStorage", e);
       return [];
@@ -259,13 +264,17 @@ const App: React.FC = () => {
 
   // Save Book handler (Local + Cloud)
   const handleSaveBook = (book: SavedBook) => {
+    const normalizedBook: SavedBook = {
+      ...book,
+      chapters: normalizeChapters(book.chapters)
+    };
     setSavedBooks(prev => {
-      const filtered = prev.filter(b => b.id !== book.id && b.title !== book.title);
-      return [book, ...filtered];
+      const filtered = prev.filter(b => b.id !== normalizedBook.id && b.title !== normalizedBook.title);
+      return [normalizedBook, ...filtered];
     });
 
     if (user) {
-      saveBookToFirestore(user.uid, book).catch(err => {
+      saveBookToFirestore(user.uid, normalizedBook).catch(err => {
         console.error("Error saving book to Firestore:", err);
       });
     }
@@ -273,7 +282,8 @@ const App: React.FC = () => {
 
   // Select a Saved Book to load its TOC into the current editor
   const handleSelectBook = (book: SavedBook) => {
-    setUploadedBookChapters(book.chapters);
+    const normalized = normalizeChapters(book.chapters);
+    setUploadedBookChapters(normalized);
     setUploadedBookTitle(book.title);
   };
 

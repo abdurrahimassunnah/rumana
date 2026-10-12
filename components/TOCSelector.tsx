@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { TOCChapter, TOCTopic, SavedBook, BOOK_CATEGORIES, ALL_GRADE_LEVELS, GradeLevel } from '../types';
 import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
+import { normalizeChapters } from '../utils/tocNormalizer';
+import { generateChapterSubheadings } from '../services/geminiService';
 
 export const normalizeBanglaSearch = (text: string): string => {
   if (!text) return '';
@@ -182,10 +184,13 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
     return savedBooks.find(b => b.title === bookTitle || b.chapters === chapters) || (savedBooks.length > 0 ? savedBooks[0] : null);
   }, [savedBooks, bookTitle, chapters]);
 
+  const [isGeneratingSubheadings, setIsGeneratingSubheadings] = useState(false);
+  const [generatingChapterId, setGeneratingChapterId] = useState<string | null>(null);
+
   const activeChapters = useMemo(() => {
-    if (chapters && chapters.length > 0) return chapters;
-    if (currentSavedBook && currentSavedBook.chapters && currentSavedBook.chapters.length > 0) return currentSavedBook.chapters;
-    return MADRASAH_CLASS_5_TOC;
+    if (chapters && chapters.length > 0) return normalizeChapters(chapters);
+    if (currentSavedBook && currentSavedBook.chapters && currentSavedBook.chapters.length > 0) return normalizeChapters(currentSavedBook.chapters);
+    return normalizeChapters(MADRASAH_CLASS_5_TOC);
   }, [chapters, currentSavedBook]);
 
   // Effective book display title and category/purpose
@@ -294,6 +299,47 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
   const currentChapter = useMemo(() => {
     return filteredChapters.find(ch => ch.id === activeChapterId) || filteredChapters[0] || fullCurrentChapter || null;
   }, [filteredChapters, activeChapterId, fullCurrentChapter]);
+
+  const handleGenerateSubheadingsForChapter = async (chapter: TOCChapter) => {
+    if (!chapter) return;
+    setIsGeneratingSubheadings(true);
+    setGeneratingChapterId(chapter.id);
+    try {
+      const generated = await generateChapterSubheadings({
+        chapterTitle: chapter.title,
+        bookTitle: displayTitle,
+        category: displayCategory,
+        gradeLevel: currentSavedBook?.gradeLevel || 'পঞ্চম শ্রেণি',
+        startPage: chapter.startPage,
+        endPage: chapter.endPage,
+        count: 4
+      });
+
+      if (generated && generated.length > 0) {
+        const updatedChapters = activeChapters.map(c => {
+          if (c.id === chapter.id) {
+            return {
+              ...c,
+              topics: generated
+            };
+          }
+          return c;
+        });
+
+        if (currentSavedBook && onUpdateSavedBook) {
+          onUpdateSavedBook({
+            ...currentSavedBook,
+            chapters: updatedChapters
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to generate subheadings for chapter:", err);
+    } finally {
+      setIsGeneratingSubheadings(false);
+      setGeneratingChapterId(null);
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0 && onUploadPdf) {
@@ -1392,20 +1438,37 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                         </span>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleToggleChapter(currentChapter)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0 self-start sm:self-auto ${
-                          isChapterFullySelected(currentChapter)
-                            ? 'bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-100'
-                            : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                        }`}
-                      >
-                        <CheckSquare className="w-3.5 h-3.5" />
-                        <span>
-                          {isChapterFullySelected(currentChapter) ? 'অধ্যায় আনসিলেক্ট করুন' : 'পুরো অধ্যায় নির্বাচন'}
-                        </span>
-                      </button>
+                      <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => handleGenerateSubheadingsForChapter(currentChapter)}
+                          disabled={isGeneratingSubheadings}
+                          title="এআই দিয়ে এই অধ্যায়ের জন্য বিস্তারিত সাব-হেডিং তৈরি করুন"
+                          className="text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-100 transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                          {isGeneratingSubheadings && generatingChapterId === currentChapter.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                          )}
+                          <span>{isGeneratingSubheadings && generatingChapterId === currentChapter.id ? 'তৈরি হচ্ছে...' : '✨ এআই সাব-হেডিং'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleChapter(currentChapter)}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                            isChapterFullySelected(currentChapter)
+                              ? 'bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-100'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          }`}
+                        >
+                          <CheckSquare className="w-3.5 h-3.5" />
+                          <span>
+                            {isChapterFullySelected(currentChapter) ? 'অধ্যায় আনসিলেক্ট করুন' : 'পুরো অধ্যায় নির্বাচন'}
+                          </span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Notice if search query filtered out some topics in this chapter */}
@@ -1477,8 +1540,21 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
 
                         if (filtered.length === 0) {
                           return (
-                            <div className="py-8 text-center text-xs text-slate-400 space-y-2">
-                              <div>এই অধ্যায়ে কোনো সাব-হেডিং মিল পাওয়া যায়নি।</div>
+                            <div className="py-8 text-center text-xs text-slate-500 space-y-3 bg-white dark:bg-slate-800/60 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-5">
+                              <p className="font-medium text-slate-600 dark:text-slate-300">এই অধ্যায়ে কোনো সাব-হেডিং মিল পাওয়া যায়নি বা এখনো তৈরি করা হয়নি।</p>
+                              <button
+                                type="button"
+                                onClick={() => handleGenerateSubheadingsForChapter(currentChapter)}
+                                disabled={isGeneratingSubheadings}
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center gap-2 mx-auto shadow-sm cursor-pointer disabled:opacity-50"
+                              >
+                                {isGeneratingSubheadings && generatingChapterId === currentChapter.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                                ) : (
+                                  <Sparkles className="w-4 h-4 text-amber-300" />
+                                )}
+                                <span>✨ এআই দিয়ে এই অধ্যায়ের জন্য বিস্তারিত সাব-হেডিং তৈরি করুন</span>
+                              </button>
                               {(subTopicSearch || searchQuery) && (
                                 <button
                                   type="button"
@@ -1487,7 +1563,7 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                                     setSearchQuery('');
                                     setShowAllInActiveChapter(true);
                                   }}
-                                  className="text-xs font-bold text-emerald-600 dark:text-emerald-400 underline cursor-pointer"
+                                  className="text-xs font-bold text-emerald-600 dark:text-emerald-400 underline cursor-pointer block mx-auto"
                                 >
                                   সকল সাব-হেডিং দেখতে সার্চ ফিল্টার মুছুন
                                 </button>

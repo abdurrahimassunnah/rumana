@@ -983,34 +983,38 @@ export const generateDetailedPlanClient = async (
     ========================================================================================================
     - ব্যবহারকারী স্পষ্টভাবে পাঠ পরিকল্পনার ভাষা হিসেবে **العربية (আরবি)** নির্বাচন করেছেন।
     - পাঠ পরিকল্পনার সবকিছু (A to Z) ১০০% নিখুঁত ও বিশুদ্ধ আরবি ভাষায় (اللغة العربية الفصحى بالكامل) তৈরি করতে হবে।
-    - সকল ফিল্ড (className, topic, subject, materials, learningObjective, successCriteria, procedures, stageAndTime, activityTitle, procedurePoints, childrenDo, teacherDoes, symbolKeys meanings) আরবি ভাষায় হবে।`
+    - সকল ফিল্ড (className, topic, subject, materials, learningObjective, successCriteria, procedures, stageAndTime, activityTitle, procedurePoints, childrenDo, teacherDoes, symbolKeys meanings) আরবি ভাষায় হবে।
+    - পাঠের দিক হবে ডান থেকে বাম (RTL)। কোনো বাংলা বা ইংরেজি বাক্য ব্যবহার করবেন না।`
     : effectiveLang === 'en'
     ? `========================================================================================================
     **ব্যবহারকারীর নির্বাচিত ভাষা: ইংরেজি (MANDATORY LANGUAGE: ENGLISH / English Language Only)**
     ========================================================================================================
     - The user explicitly selected **English** as the language for this lesson plan.
-    - Create the ENTIRE lesson plan strictly in professional, clear English.
-    - All metadata, learning objectives, success criteria, classroom stages, teacher/student actions, materials, and notes must be in English.`
+    - Create the ENTIRE lesson plan strictly in professional, clear English from left to right (LTR).
+    - All metadata, learning objectives, success criteria, classroom stages, teacher/student actions, materials, and notes must be in English.
+    - Do NOT use Arabic or Bengali sentences. Even if the subject is Arabic, all instructions and pedagogical actions must be in English.`
     : `========================================================================================================
-    **ব্যবহারকারীর নির্বাচিত ভাষা: বাংলা (MANDATORY LANGUAGE: BENGALI / ১০০% প্রমিত বাংলা)**
+    **ব্যবহারকারীর নির্বাচিত ভাষা: বাংলা (MANDATORY LANGUAGE: BENGALI / ১০০% প্রমিত বাংলা - অত্যন্ত কঠোর নিয়ম)**
     ========================================================================================================
     - ব্যবহারকারী পাঠ পরিকল্পনার ভাষা হিসেবে **বাংলা (Bengali)** নির্বাচন করেছেন।
-    - সম্পূর্ণ পাঠ পরিকল্পনা ১০০% প্রমিত বাংলা ভাষায় তৈরি করতে হবে।
-    - বাংলায় শিখনফল অবশ্যই "পাঠ শেষে শিক্ষার্থীরা..." দিয়ে শুরু হবে এবং সাফল্য নির্ণায়ক "সাফল্য নির্ণায়ক: আমি পারি:" দিয়ে শুরু হবে।
-    - শিক্ষক কার্যক্রম, শিক্ষার্থী কার্যক্রম এবং ধাপসমূহ বাংলায় হবে।`;
+    - এটি অবজারভেশন ক্লাসের জন্য ডিটেইল লেসন প্ল্যান।
+    - **কঠোরতম শর্ত (Zero Tolerance):** সম্পূর্ণ পাঠ পরিকল্পনা ১০০% প্রমিত বাংলা ভাষায় বাম থেকে ডান (LTR) অনুযায়ী তৈরি করতে হবে।
+    - বিষয় (Subject) বা টপিক আরবি হলেও (যেমন: আরবি শব্দভাণ্ডার বা ورد, انبج, هدية, يد), লেসন প্ল্যানের সকল শিরোনাম, শিখনফল, সাফল্য নির্ণায়ক, শিক্ষক কার্যক্রম (teacherDoes), শিক্ষার্থী কার্যক্রম (childrenDo), ধাপের বিবরণ (procedurePoints), উপকরণ (materials), সময়বণ্টন ও প্রশ্নাবলী **১০০% বাংলায়** লিখতে হবে।
+    - কেবল যে নির্দিষ্ট শব্দগুলো মুখস্থ করাতে হবে (যেমন: 'ورد (গোলাপ)', 'انبج (আম)') সেগুলো পাঠ্যের উপকরণ/টপিক হিসেবে উল্লেখ থাকতে পারে, কিন্তু কোনো আরবি বাক্য, আরবি নির্দেশনা বা ডান-থেকে-বাম (RTL) ফরম্যাট ব্যবহার করা যাবে না।
+    - বাংলায় শিখনফল অবশ্যই "পাঠ শেষে শিক্ষার্থীরা..." দিয়ে শুরু হবে এবং সাফল্য নির্ণায়ক "সাফল্য নির্ণায়ক: আমি পারি:" দিয়ে শুরু হবে।`;
 
   const standaloneRule = request.isStandaloneTopic
     ? `========================================================================================================
     **স্বাধীন বিষয় / বই ছাড়া সরাসরি স্বয়ংক্রিয় পেডাগোজিক্যাল প্ল্যান (AUTONOMOUS CREATION - NO BOOK DEPENDENCY):**
     ========================================================================================================
-    - এই পাঠ পরিকল্পনাটি কোনো নির্দিষ্ট বই বা পিডিএফের উপর নির্ভরশীল নয়। শিক্ষক বই ছাড়াই সরাসরি বিষয় উল্লেখ করেছেন।
-    - আপনি কোনো বইয়ের সাহায্য ছাড়াই নিজের মাস্টার পেডাগোজিক্যাল জ্ঞান দিয়ে এই বিষয়ের উপর একটি স্বয়ংসম্পূর্ণ, বিস্তারিত ও আনন্দদায়ক লেসন প্ল্যান তৈরি করবেন।
+    - এই পাঠ পরিকল্পনাটি কোনো নির্দিষ্ট বই বা পিডিএফের উপর নির্ভরশীল নয়। শিক্ষক বই ছাড়াই সরাসরি বিষয় ও শব্দ উল্লেখ করেছেন।
+    - কোনো বইয়ের পৃষ্ঠা নম্বর বা বইয়ের রেফারেন্স উল্লেখ করবেন না। সম্পূর্ণ নিজের পেডাগোজিক্যাল জ্ঞান দিয়ে স্বয়ংসম্পূর্ণ লেসন প্ল্যান তৈরি করবেন।
     - শিক্ষক যে বিষয়/শব্দগুলো দিয়েছেন:
       • মূল টপিক: "${effectiveTopic}"
       • নির্দেশনা ও বিবরণ: "${request.content || ''}"
-    - **বিশেষ গুরুত্ব (যদি শব্দ মুখস্থকরণ বা ভাষা শিক্ষা হয়, যেমন: আরবি শব্দাদি আনন্দের সাথে মুখস্থকরণ):**
-      • মুখস্থ করানোর পদ্ধতি হবে সম্পূর্ণ আকর্ষণীয় ও আনন্দদায়ক (Fun & Playful Memorization Techniques)।
-      • শিক্ষক ও শিক্ষার্থীদের কার্যক্রমে (teacherDoes & childrenDo) আনন্দদায়ক খেলাধুলা (Educational Games e.g. Magic Flashcard, Guess the Word, Action/Mime, Sound & Echo, Fast Finger), ছড়া/রিদম, শারীরিক অঙ্গভঙ্গি (TPR) ও সক্রিয় অংশগ্রহণ বিশদভাবে বর্ণনা করুন।
+    - **বিশেষ গুরুত্ব (শব্দ মুখস্থকরণ / ভাষা শিক্ষা):**
+      • মুখস্থ করানোর পদ্ধতি হবে সম্পূর্ণ আকর্ষণীয়, আনন্দদায়ক ও খেলাভিত্তিক (Fun & Playful Memorization Techniques)।
+      • শিক্ষক ও শিক্ষার্থীদের কার্যক্রমে (teacherDoes & childrenDo) আনন্দদায়ক খেলাধুলা (Educational Games e.g. Magic Flashcard, Guess the Word, Action/Mime, Sound & Echo, Fast Finger, Relay Race), ছড়া/রিদম, শারীরিক অঙ্গভঙ্গি (TPR) ও সক্রিয় অংশগ্রহণ বিশদভাবে বর্ণনা করুন।
       • একঘেয়ে পুনরাবৃত্তি বাদ দিয়ে আনন্দদায়ক কৌশলে ক্লাসের ভেতরই শিশুদের মুখস্থ করিয়ে নেওয়ার স্পষ্ট ধাপ উল্লেখ করুন।
     ========================================================================================================`
     : '';
@@ -1037,13 +1041,14 @@ export const generateDetailedPlanClient = async (
 
     Output JSON with exact schema:
     {
+      "language": "${effectiveLang}",
       "className": "${effectiveClass}",
       "topic": "${effectiveTopic}${planDays > 1 ? ` (${planDays}-Day Plan)` : ''}",
       "subject": "${effectiveSubject}",
       "teacherName": "${effectiveTeacher}",
       "duration": "${duration} mins${planDays > 1 ? ` × ${planDays} Days` : ''}",
-      "materials": "Materials in the book's language",
-      "learningObjective": "Learning objective in the book's language",
+      "materials": "Materials in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+      "learningObjective": "Learning objective in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
       "successCriteria": [
         "1. Criterion 1",
         "2. Criterion 2",
@@ -1051,23 +1056,23 @@ export const generateDetailedPlanClient = async (
       ],
       "procedures": [
         {
-          "stageAndTime": "Lead in / warm-up\\n3-5 minutes",
-          "activityTitle": "Activity title in book's language",
+          "stageAndTime": "${effectiveLang === 'bn' ? 'ওয়ার্ম-আপ ও প্রস্তুতি\\n৩-৫ মিনিট' : effectiveLang === 'ar' ? 'التهيئة والتمهيد\\n٣-٥ دقائق' : 'Lead in / warm-up\\n3-5 minutes'}",
+          "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "procedurePoints": [
-            "Teacher action 1",
-            "Teacher action 2"
+            "Teacher action 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+            "Teacher action 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
           ],
-          "childrenDo": "Student action in book's language",
-          "teacherDoes": "Teacher action in book's language",
+          "childrenDo": "Student action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+          "teacherDoes": "Teacher action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "intPattern": "W/C\\nC / O",
           "aids": "SB\\nC / O"
         },
         {
-          "stageAndTime": "Main activity\\n15-20 minutes",
-          "activityTitle": "Activity title in book's language",
+          "stageAndTime": "${effectiveLang === 'bn' ? 'মূল পাঠ ও উপস্থাপন\\n১৫-২০ মিনিট' : effectiveLang === 'ar' ? 'النشاط الرئيسي والشرح\\n١٥-٢٠ دقيقة' : 'Main activity\\n15-20 minutes'}",
+          "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "procedurePoints": [
-            "Teacher action 1",
-            "Teacher action 2"
+            "Step 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+            "Step 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
           ],
           "childrenDo": "Student action",
           "teacherDoes": "Teacher action",
@@ -1075,11 +1080,11 @@ export const generateDetailedPlanClient = async (
           "aids": "Flashcards\\n& toys"
         },
         {
-          "stageAndTime": "Practice / play\\n10 minutes",
-          "activityTitle": "Activity title in book's language",
+          "stageAndTime": "${effectiveLang === 'bn' ? 'অনুশীলন ও খেলাধুলা\\n১০ মিনিট' : effectiveLang === 'ar' ? 'التطبيق والأنشطة التفاعلية\\n١٠ دقائق' : 'Practice / play\\n10 minutes'}",
+          "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "procedurePoints": [
-            "Practice step 1",
-            "Practice step 2"
+            "Practice step 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+            "Practice step 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
           ],
           "childrenDo": "Student action",
           "teacherDoes": "Teacher action",
@@ -1087,11 +1092,11 @@ export const generateDetailedPlanClient = async (
           "aids": "Objects"
         },
         {
-          "stageAndTime": "Review\\n5 minutes",
-          "activityTitle": "Activity title in book's language",
+          "stageAndTime": "${effectiveLang === 'bn' ? 'পর্যালোচনা ও মূল্যায়ন\\n৫ মিনিট' : effectiveLang === 'ar' ? 'المراجعة والتقييم الختامي\\n٥ دقائق' : 'Review\\n5 minutes'}",
+          "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "procedurePoints": [
-            "Review point 1",
-            "Review point 2"
+            "Review point 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+            "Review point 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
           ],
           "childrenDo": "Student action",
           "teacherDoes": "Teacher action",
@@ -1101,15 +1106,15 @@ export const generateDetailedPlanClient = async (
       ],
       "symbolKeys": {
         "intKeys": [
-          { "symbol": "W/C", "meaning": "whole class" },
-          { "symbol": "PW", "meaning": "Pair work" },
-          { "symbol": "GW", "meaning": "Group work" },
-          { "symbol": "S", "meaning": "students work individually" }
+          { "symbol": "W/C", "meaning": "${effectiveLang === 'bn' ? 'পুরো শ্রেণি (Whole class)' : effectiveLang === 'ar' ? 'كامل الصف' : 'whole class'}" },
+          { "symbol": "PW", "meaning": "${effectiveLang === 'bn' ? 'জোড়ায় কাজ (Pair work)' : effectiveLang === 'ar' ? 'عمل ثنائي' : 'Pair work'}" },
+          { "symbol": "GW", "meaning": "${effectiveLang === 'bn' ? 'দলগত কাজ (Group work)' : effectiveLang === 'ar' ? 'عمل جماعي' : 'Group work'}" },
+          { "symbol": "S", "meaning": "${effectiveLang === 'bn' ? 'একক কাজ (Individual)' : effectiveLang === 'ar' ? 'عمل فردي' : 'students work individually'}" }
         ],
         "aidsKeys": [
-          { "symbol": "SB", "meaning": "Smartboard" },
-          { "symbol": "TB", "meaning": "Textbook" },
-          { "symbol": "W/S", "meaning": "Worksheet" }
+          { "symbol": "SB", "meaning": "${effectiveLang === 'bn' ? 'স্মার্টবোর্ড / বোর্ড' : effectiveLang === 'ar' ? 'السبورة الذكية' : 'Smartboard'}" },
+          { "symbol": "TB", "meaning": "${effectiveLang === 'bn' ? 'পাঠ্যবই' : effectiveLang === 'ar' ? 'الكتاب المدرسي' : 'Textbook'}" },
+          { "symbol": "W/S", "meaning": "${effectiveLang === 'bn' ? 'ওয়ার্কশিট' : effectiveLang === 'ar' ? 'ورقة عمل' : 'Worksheet'}" }
         ]
       }
     }
@@ -1153,7 +1158,9 @@ export const generateDetailedPlanClient = async (
     throw lastError || new Error("বিস্তারিত পাঠ পরিকল্পনা তৈরি করা সম্ভব হয়নি।");
   }
 
-  return JSON.parse(resultText);
+  const parsed = JSON.parse(resultText);
+  parsed.language = effectiveLang;
+  return parsed;
 };
 
 export interface ExtractedTOCResult {

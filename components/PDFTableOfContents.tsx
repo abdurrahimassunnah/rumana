@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { TOCChapter, TOCTopic, GradeLevel, SavedBook, BOOK_CATEGORIES, ALL_GRADE_LEVELS } from '../types';
 import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
+import { normalizeChapters } from '../utils/tocNormalizer';
 import { extractPdfTableOfContents } from '../services/geminiService';
 import { TOCSelector } from './TOCSelector';
 import { BookLibraryCatalog } from './BookLibraryCatalog';
@@ -105,9 +106,10 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
   // Sync with external chapters
   React.useEffect(() => {
     if (externalChapters && externalChapters.length > 0) {
-      setInternalChapters(externalChapters);
-      if (!activeChapter || !externalChapters.some(c => c.id === activeChapter.id)) {
-        setActiveChapter(externalChapters[0]);
+      const normalized = normalizeChapters(externalChapters);
+      setInternalChapters(normalized);
+      if (!activeChapter || !normalized.some(c => c.id === activeChapter.id)) {
+        setActiveChapter(normalized[0]);
       }
     } else {
       setInternalChapters(null);
@@ -379,6 +381,10 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
       <TOCSelector 
         chapters={chapters || MADRASAH_CLASS_5_TOC}
         bookTitle={bookTitle || 'ইসলামিক স্টাডিজ'}
+        savedBooks={savedBooks}
+        onSelectSavedBook={onSelectSavedBook}
+        onUpdateSavedBook={onUpdateBook}
+        onDeleteSavedBook={onDeleteBook}
         selectedChapter={activeChapter}
         selectedTopics={selectedTopicItems.map(item => item.topic)}
         onToggleTopic={handleToggleTopic}

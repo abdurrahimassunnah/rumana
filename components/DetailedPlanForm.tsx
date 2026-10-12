@@ -377,8 +377,10 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
                   ৩টি ভাষা সমর্থিত
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                নির্বাচিত ভাষায় সম্পূর্ণ লেসন প্ল্যান (শিখনফল, শিক্ষক-শিক্ষার্থী কার্যকলাপ ও সেশন বণ্টন) তৈরি হবে
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
+                {planLanguage === 'bn' && '🇧🇩 বাংলা সক্রিয়: বিষয় আরবি হলেও সম্পূর্ণ লেসন প্ল্যান ও টেবিল ১০০% প্রমিত বাংলায় বাম থেকে ডানে (LTR) তৈরি হবে।'}
+                {planLanguage === 'en' && '🇬🇧 English selected: The entire lesson plan and table will be in English from left to right (LTR).'}
+                {planLanguage === 'ar' && '🇸🇦 العربية مفعلة: سيتم إنشاء خطة الدرس بالكامل باللغة العربية الفصحى من اليمين إلى اليسار (RTL).'}
               </p>
             </div>
           </div>

@@ -274,6 +274,7 @@ export interface SymbolKeyMap {
 
 export interface DetailedLessonPlan {
   id?: string;
+  language?: PlanLanguage | string;
   // Metadata Grid (Exact match)
   className: string; // e.g. "KG" or "৫ম শ্রেণি"
   topic: string; // e.g. "Colors (Red, Blue, Yellow)"

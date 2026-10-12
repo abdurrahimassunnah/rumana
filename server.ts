@@ -7,7 +7,24 @@ const SYSTEM_INSTRUCTION_BASE = `
     আপনি 'মাদরাসাতুস সুন্নাহ'-এর একজন অত্যন্ত দক্ষ, বিচক্ষণ এবং অভিজ্ঞ শিক্ষক ও কারিকুলাম ডিজাইনার (Master Curriculum Designer & Teacher).
 
     ========================================================================================================
-    **ভাষা সংক্রান্ত অত্যন্ত কঠোর ও অলঙ্ঘনীয় নীতি (STRICT SOURCE-LANGUAGE FIDELITY RULE - MANDATORY):**
+    **ব্যবহারকারীর নির্বাচিত ভাষার শতভাগ সর্বোচ্চ ও চূড়ান্ত অগ্রাধিকার (USER'S SELECTED LANGUAGE HAS 100% SUPREME OVERRIDE):**
+    ========================================================================================================
+    ব্যবহারকারী যদি পাঠ পরিকল্পনা বা বিস্তারিত লেসন প্ল্যানের জন্য নির্দিষ্ট কোনো ভাষা (Language: 'bn' বাংলা, 'en' ইংরেজি, অথবা 'ar' আরবি) নির্বাচন করে দেন, তবে বিষয়টি (Subject) যাই হোক না কেন (এমনকি বিষয় আরবি, ইংরেজি, কুরআন, গণিত বা বিজ্ঞান হলেও), ব্যবহারকারীর নির্বাচিত ভাষাই হবে লেসন প্ল্যানের একমাত্র একক ভাষা!
+    
+    ১. **ব্যবহারকারী 'বাংলা' (Bengali) নির্বাচন করলে:**
+       - বিষয় যাই হোক না কেন (আরবি ভাষা বা ইংরেজি হলেও), সম্পূর্ণ লেসন প্ল্যানের সকল ব্যাখ্যা, শিখনফল, শিক্ষক-শিক্ষার্থী কার্যক্রম, খেলাধুলার নিয়ম, উপকরণ এবং টেবিলের প্রতিটি শব্দ **১০০% প্রমিত বাংলা ভাষায়** হতে হবে!
+       - পর্যবেক্ষক বা শিক্ষক বাংলায় এই লেসন প্ল্যানটি দেখবেন। তাই কোনো অপ্রয়োজনীয় আরবি বা ইংরেজি শব্দ লেসন প্ল্যানে রাখা যাবে না।
+       - যদি নির্দিষ্ট কোনো আরবি বা বিদেশি শব্দ শেখানো হয় (যেমন: ورد, انبج, هدية, يد), তবে কেবল সেই লক্ষ্য শব্দগুলো উদ্ধৃতি চিহ্নের ভেতর বাংলা অর্থসহ থাকবে (যেমন: "টার্গেট শব্দসমূহ: 'ورد' (গোলাপ), 'يد' (হাত)")। কিন্তু এর বাইরের সকল কিছু (ভূমিকা, শিক্ষক কী করবেন, শিক্ষার্থীরা কী করবে, মূল্যায়ন) ১০০% বাংলায় লিখতে হবে।
+       - কোনো অবস্থাতেই ডান দিক থেকে শুরু (RTL) করা যাবে না; সম্পূর্ণ লেআউট বাম থেকে ডানে (LTR) স্বাভাবিক বাংলায় হবে।
+    
+    ২. **ব্যবহারকারী 'العربية' (Arabic) নির্বাচন করলে:**
+       - বিষয় যাই হোক না কেন, সম্পূর্ণ লেসন প্ল্যান ১০০% বিশুদ্ধ ও নিখুঁত আরবিতে (اللغة العربية الفصحى بالكامل) হবে। কোনো বাংলা বা ইংরেজি শব্দ থাকবে না।
+    
+    ৩. **ব্যবহারকারী 'English' নির্বাচন করলে:**
+       - বিষয় যাই হোক না কেন, সম্পূর্ণ লেসন প্ল্যান ১০০% প্রমিত ইংরেজিতে (English Only) হবে।
+    
+    ========================================================================================================
+    **যদি ব্যবহারকারী আলাদা ভাষা নির্বাচন না করেন, তখন মূল পাঠ্যের ভাষা নীতি (Fallback when no language selected):**
     ========================================================================================================
     প্রদত্ত বই, সিলেবাস বা পাঠ্যের মূল ভাষার সাথে পাঠ পরিকল্পনা (Lesson Plan), বিস্তারিত পাঠ পরিকল্পনা (Detailed Lesson Plan), অনুশীলনী (Exercise), প্রশ্নপত্র (Question Paper), কুইজ (Quiz) এবং সূচিপত্রের (Table of Contents) ভাষা ১০০% অবিকল ও অভিন্ন হতে হবে।
     
@@ -927,34 +944,38 @@ async function startServer() {
         ========================================================================================================
         - ব্যবহারকারী স্পষ্টভাবে পাঠ পরিকল্পনার ভাষা হিসেবে **العربية (আরবি)** নির্বাচন করেছেন।
         - পাঠ পরিকল্পনার সবকিছু (A to Z) ১০০% নিখুঁত ও বিশুদ্ধ আরবি ভাষায় (اللغة العربية الفصحى بالكامل) তৈরি করতে হবে।
-        - সকল ফিল্ড (className, topic, subject, materials, learningObjective, successCriteria, procedures, stageAndTime, activityTitle, procedurePoints, childrenDo, teacherDoes, symbolKeys meanings) আরবি ভাষায় হবে।`
+        - সকল ফিল্ড (className, topic, subject, materials, learningObjective, successCriteria, procedures, stageAndTime, activityTitle, procedurePoints, childrenDo, teacherDoes, symbolKeys meanings) আরবি ভাষায় হবে।
+        - পাঠের দিক হবে ডান থেকে বাম (RTL)। কোনো বাংলা বা ইংরেজি শব্দ ব্যবহার করবেন না।`
         : effectiveLang === 'en'
         ? `========================================================================================================
         **ব্যবহারকারীর নির্বাচিত ভাষা: ইংরেজি (MANDATORY LANGUAGE: ENGLISH / English Language Only)**
         ========================================================================================================
         - The user explicitly selected **English** as the language for this lesson plan.
-        - Create the ENTIRE lesson plan strictly in professional, clear English.
-        - All metadata, learning objectives, success criteria, classroom stages, teacher/student actions, materials, and notes must be in English.`
+        - Create the ENTIRE lesson plan strictly in professional, clear English from left to right (LTR).
+        - All metadata, learning objectives, success criteria, classroom stages, teacher/student actions, materials, and notes must be in English.
+        - Do NOT use Arabic or Bengali sentences. Even if the subject is Arabic, all instructions and pedagogical actions must be in English.`
         : `========================================================================================================
-        **ব্যবহারকারীর নির্বাচিত ভাষা: বাংলা (MANDATORY LANGUAGE: BENGALI / ১০০% প্রমিত বাংলা)**
+        **ব্যবহারকারীর নির্বাচিত ভাষা: বাংলা (MANDATORY LANGUAGE: BENGALI / ১০০% প্রমিত বাংলা - অত্যন্ত কঠোর নিয়ম)**
         ========================================================================================================
         - ব্যবহারকারী পাঠ পরিকল্পনার ভাষা হিসেবে **বাংলা (Bengali)** নির্বাচন করেছেন।
-        - সম্পূর্ণ পাঠ পরিকল্পনা ১০০% প্রমিত বাংলা ভাষায় তৈরি করতে হবে।
-        - বাংলায় শিখনফল অবশ্যই "পাঠ শেষে শিক্ষার্থীরা..." দিয়ে শুরু হবে এবং সাফল্য নির্ণায়ক "সাফল্য নির্ণায়ক: আমি পারি:" দিয়ে শুরু হবে।
-        - শিক্ষক কার্যক্রম, শিক্ষার্থী কার্যক্রম এবং ধাপসমূহ বাংলায় হবে।`;
+        - এটি অবজারভেশন ক্লাসের জন্য ডিটেইল লেসন প্ল্যান।
+        - **কঠোরতম শর্ত (Zero Tolerance):** সম্পূর্ণ পাঠ পরিকল্পনা ১০০% প্রমিত বাংলা ভাষায় বাম থেকে ডান (LTR) অনুযায়ী তৈরি করতে হবে।
+        - বিষয় (Subject) বা টপিক আরবি হলেও (যেমন: আরবি শব্দভাণ্ডার বা ورد, انبج, هدية, يد), লেসন প্ল্যানের সকল শিরোনাম, শিখনফল, সাফল্য নির্ণায়ক, শিক্ষক কার্যক্রম (teacherDoes), শিক্ষার্থী কার্যক্রম (childrenDo), ধাপের বিবরণ (procedurePoints), উপকরণ (materials), সময়বণ্টন ও প্রশ্নাবলী **১০০% বাংলায়** লিখতে হবে।
+        - কেবল যে নির্দিষ্ট শব্দগুলো মুখস্থ করাতে হবে (যেমন: 'ورد (গোলাপ)', 'انبج (আম)') সেগুলো পাঠ্যের উপকরণ/টপিক হিসেবে উল্লেখ থাকতে পারে, কিন্তু কোনো আরবি বাক্য, আরবি নির্দেশনা বা ডান-থেকে-বাম (RTL) ফরম্যাট ব্যবহার করা যাবে না।
+        - বাংলায় শিখনফল অবশ্যই "পাঠ শেষে শিক্ষার্থীরা..." দিয়ে শুরু হবে এবং সাফল্য নির্ণায়ক "সাফল্য নির্ণায়ক: আমি পারি:" দিয়ে শুরু হবে।`;
 
       const standaloneRule = isStandaloneTopic
         ? `========================================================================================================
         **স্বাধীন বিষয় / বই ছাড়া সরাসরি স্বয়ংক্রিয় পেডাগোজিক্যাল প্ল্যান (AUTONOMOUS CREATION - NO BOOK / TEXTBOOK DEPENDENCY):**
         ========================================================================================================
-        - এই পাঠ পরিকল্পনাটি কোনো নির্দিষ্ট বই বা পিডিএফের উপর নির্ভরশীল নয়। শিক্ষক বই ছাড়াই সরাসরি বিষয় উল্লেখ করেছেন।
-        - আপনি কোনো বইয়ের সাহায্য ছাড়াই নিজের মাস্টার পেডাগোজিক্যাল জ্ঞান দিয়ে এই বিষয়ের উপর একটি স্বয়ংসম্পূর্ণ, বিস্তারিত ও আনন্দদায়ক লেসন প্ল্যান তৈরি করবেন।
+        - এই পাঠ পরিকল্পনাটি কোনো নির্দিষ্ট বই বা পিডিএফের উপর নির্ভরশীল নয়। শিক্ষক বই ছাড়াই সরাসরি বিষয় ও শব্দ উল্লেখ করেছেন।
+        - কোনো বইয়ের পৃষ্ঠা নম্বর বা বইয়ের রেফারেন্স উল্লেখ করবেন না। সম্পূর্ণ নিজের পেডাগোজিক্যাল জ্ঞান দিয়ে স্বয়ংসম্পূর্ণ লেসন প্ল্যান তৈরি করবেন।
         - শিক্ষক যে বিষয়/শব্দগুলো দিয়েছেন:
           • মূল টপিক: "${effectiveTopic}"
           • নির্দেশনা ও বিবরণ: "${content || ''}"
-        - **বিশেষ গুরুত্ব (যদি শব্দ মুখস্থকরণ বা ভাষা শিক্ষা হয়, যেমন: আরবি শব্দাদি আনন্দের সাথে মুখস্থকরণ):**
-          • মুখস্থ করানোর পদ্ধতি হবে সম্পূর্ণ আকর্ষণীয় ও আনন্দদায়ক (Fun & Playful Memorization Techniques)।
-          • শিক্ষক ও শিক্ষার্থীদের কার্যক্রমে (teacherDoes & childrenDo) আনন্দদায়ক খেলাধুলা (Educational Games e.g. Magic Flashcard, Guess the Word, Action/Mime, Sound & Echo, Fast Finger), ছড়া/রিদম, শারীরিক অঙ্গভঙ্গি (TPR) ও সক্রিয় অংশগ্রহণ বিশদভাবে বর্ণনা করুন।
+        - **বিশেষ গুরুত্ব (শব্দ মুখস্থকরণ / ভাষা শিক্ষা):**
+          • মুখস্থ করানোর পদ্ধতি হবে সম্পূর্ণ আকর্ষণীয়, আনন্দদায়ক ও খেলাভিত্তিক (Fun & Playful Memorization Techniques)।
+          • শিক্ষক ও শিক্ষার্থীদের কার্যক্রমে (teacherDoes & childrenDo) আনন্দদায়ক খেলাধুলা (Educational Games e.g. Magic Flashcard, Guess the Word, Action/Mime, Sound & Echo, Fast Finger, Relay Race), ছড়া/রিদম, শারীরিক অঙ্গভঙ্গি (TPR) ও সক্রিয় অংশগ্রহণ বিশদভাবে বর্ণনা করুন।
           • একঘেয়ে পুনরাবৃত্তি বাদ দিয়ে আনন্দদায়ক কৌশলে ক্লাসের ভেতরই শিশুদের মুখস্থ করিয়ে নেওয়ার স্পষ্ট ধাপ উল্লেখ করুন।
         ========================================================================================================`
         : '';
@@ -980,37 +1001,41 @@ async function startServer() {
         ${additionalInstructions ? `• Special Instructions: ${additionalInstructions}` : ''}
 
         **Template Structural Rules:**
-        1. **Metadata Grid**:
-           - Class, Topic, Subject, Teacher's Name, Duration, Materials (relevant to the topic, in the same language as the book/subject).
-        2. **Learning Objective**:
-           - Clear, measurable outcomes in the source language.
-        3. **Success Criteria**:
-           - 3 actionable bullet/numbered items in the source language.
-        4. **Lesson Procedure (4 Standard Stages)**:
+        1. **Language Discipline**:
+           - The entire output MUST strictly be in the selected language: ${effectiveLang === 'bn' ? 'BENGALI (বাংলা)' : effectiveLang === 'ar' ? 'ARABIC (العربية)' : 'ENGLISH'}.
+           - Do not mix languages.
+        2. **Metadata Grid**:
+           - Class, Topic, Subject, Teacher's Name, Duration, Materials (in the selected language).
+        3. **Learning Objective**:
+           - Clear, measurable outcomes in the selected language (${effectiveLang === 'bn' ? 'বাংলায় "পাঠ শেষে শিক্ষার্থীরা..."' : ''}).
+        4. **Success Criteria**:
+           - 3 actionable bullet/numbered items in the selected language (${effectiveLang === 'bn' ? 'বাংলায় "সাফল্য নির্ণায়ক: আমি পারি:"' : ''}).
+        5. **Lesson Procedure (4 Standard Stages)**:
            - Stage 1: Lead in / warm-up (3-5 mins)
            - Stage 2: Main activity (15-20 mins)
            - Stage 3: Practice / play (10 mins)
            - Stage 4: Review (5 mins)
            - Each stage must specify:
-             - "stageAndTime": e.g. "Lead in / warm-up\\n3-5 minutes" or "প্রারম্ভিক আলোচনা / ওয়ার্ম-আপ\\n৩-৫ মিনিট"
-             - "activityTitle": concise activity title in source language
-             - "procedurePoints": list of teacher actions and classroom instructions
-             - "childrenDo": what students physically/verbally do
-             - "teacherDoes": what teacher does
+             - "stageAndTime": formatted string in the selected language (e.g. "${effectiveLang === 'bn' ? 'প্রারম্ভিক আলোচনা / ওয়ার্ম-আপ\\n৩-৫ মিনিট' : effectiveLang === 'ar' ? 'التمهيد والتهيئة\\n٣-٥ دقائق' : 'Lead in / warm-up\\n3-5 minutes'}")
+             - "activityTitle": concise activity title in the selected language
+             - "procedurePoints": list of teacher actions and classroom instructions in the selected language
+             - "childrenDo": what students physically/verbally do in the selected language
+             - "teacherDoes": what teacher does in the selected language
              - "intPattern": Interaction pattern codes (e.g., "W/C\\nC / O", "W/C\\nS", "GW\\nS", "PW", "W/C")
              - "aids": Teaching aids codes (e.g., "SB\\nC / O", "Flashcards\\n& toys", "Objects", "SB", "TB", "W/S")
-        5. **Key to Symbols**:
-           - Interaction patterns & Aids.
+        6. **Key to Symbols**:
+           - Interaction patterns & Aids in the selected language.
 
         Provide your output ONLY as valid JSON matching this schema:
         {
+          "language": "${effectiveLang}",
           "className": "${effectiveClass}",
           "topic": "${effectiveTopic}",
           "subject": "${effectiveSubject}",
           "teacherName": "${effectiveTeacher}",
           "duration": "${duration} mins",
-          "materials": "Relevant materials in the book's language",
-          "learningObjective": "Learning objective in the book's language",
+          "materials": "Relevant materials in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+          "learningObjective": "Learning objective in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "successCriteria": [
             "1. Criterion 1",
             "2. Criterion 2",
@@ -1018,65 +1043,65 @@ async function startServer() {
           ],
           "procedures": [
             {
-              "stageAndTime": "Lead in / warm-up\\n3-5 minutes",
-              "activityTitle": "Activity title in book's language",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'ওয়ার্ম-আপ ও প্রস্তুতি\\n৩-৫ মিনিট' : effectiveLang === 'ar' ? 'التهيئة والتمهيد\\n٣-٥ دقائق' : 'Lead in / warm-up\\n3-5 minutes'}",
+              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "procedurePoints": [
-                "Teacher action 1",
-                "Teacher action 2"
+                "Teacher action 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+                "Teacher action 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
               ],
-              "childrenDo": "Student action in book's language",
-              "teacherDoes": "Teacher action in book's language",
+              "childrenDo": "Student action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "teacherDoes": "Teacher action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "intPattern": "W/C\\nC / O",
               "aids": "SB\\nC / O"
             },
             {
-              "stageAndTime": "Main activity\\n15-20 minutes",
-              "activityTitle": "Activity title in book's language",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'মূল পাঠ ও উপস্থাপন\\n১৫-২০ মিনিট' : effectiveLang === 'ar' ? 'النشاط الرئيسي والشرح\\n١٥-٢٠ دقيقة' : 'Main activity\\n15-20 minutes'}",
+              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "procedurePoints": [
-                "Teacher action 1",
-                "Teacher action 2"
+                "Step 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+                "Step 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
               ],
-              "childrenDo": "Student action",
-              "teacherDoes": "Teacher action",
+              "childrenDo": "Student action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "teacherDoes": "Teacher action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "intPattern": "W/C\\nS",
               "aids": "Flashcards\\n& toys"
             },
             {
-              "stageAndTime": "Practice / play\\n10 minutes",
-              "activityTitle": "Activity title in book's language",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'অনুশীলন ও খেলাধুলা\\n১০ মিনিট' : effectiveLang === 'ar' ? 'التطبيق والأنشطة التفاعلية\\n١٠ دقائق' : 'Practice / play\\n10 minutes'}",
+              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "procedurePoints": [
-                "Practice step 1",
-                "Practice step 2"
+                "Practice step 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+                "Practice step 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
               ],
-              "childrenDo": "Student action",
-              "teacherDoes": "Teacher action",
+              "childrenDo": "Student action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "teacherDoes": "Teacher action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "intPattern": "GW\\nS",
               "aids": "Objects"
             },
             {
-              "stageAndTime": "Review\\n5 minutes",
-              "activityTitle": "Activity title in book's language",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'পর্যালোচনা ও মূল্যায়ন\\n৫ মিনিট' : effectiveLang === 'ar' ? 'المراجعة والتقييم الختامي\\n٥ دقائق' : 'Review\\n5 minutes'}",
+              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "procedurePoints": [
-                "Review point 1",
-                "Review point 2"
+                "Review point 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+                "Review point 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
               ],
-              "childrenDo": "Student action",
-              "teacherDoes": "Teacher action",
+              "childrenDo": "Student action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "teacherDoes": "Teacher action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "intPattern": "W/C",
               "aids": "SB"
             }
           ],
           "symbolKeys": {
             "intKeys": [
-              { "symbol": "W/C", "meaning": "whole class" },
-              { "symbol": "PW", "meaning": "Pair work" },
-              { "symbol": "GW", "meaning": "Group work" },
-              { "symbol": "S", "meaning": "students work individually" }
+              { "symbol": "W/C", "meaning": "${effectiveLang === 'bn' ? 'পুরো শ্রেণি (Whole class)' : effectiveLang === 'ar' ? 'كامل الصف' : 'Whole class'}" },
+              { "symbol": "PW", "meaning": "${effectiveLang === 'bn' ? 'জোড়ায় কাজ (Pair work)' : effectiveLang === 'ar' ? 'عمل ثنائي' : 'Pair work'}" },
+              { "symbol": "GW", "meaning": "${effectiveLang === 'bn' ? 'দলগত কাজ (Group work)' : effectiveLang === 'ar' ? 'عمل جماعي' : 'Group work'}" },
+              { "symbol": "S", "meaning": "${effectiveLang === 'bn' ? 'একক কাজ (Individual)' : effectiveLang === 'ar' ? 'عمل فردي' : 'Students work individually'}" }
             ],
             "aidsKeys": [
-              { "symbol": "SB", "meaning": "Smartboard" },
-              { "symbol": "TB", "meaning": "Textbook" },
-              { "symbol": "W/S", "meaning": "Worksheet" }
+              { "symbol": "SB", "meaning": "${effectiveLang === 'bn' ? 'স্মার্টবোর্ড / বোর্ড' : effectiveLang === 'ar' ? 'السبورة الذكية' : 'Smartboard'}" },
+              { "symbol": "TB", "meaning": "${effectiveLang === 'bn' ? 'পাঠ্যবই' : effectiveLang === 'ar' ? 'الكتاب المدرسي' : 'Textbook'}" },
+              { "symbol": "W/S", "meaning": "${effectiveLang === 'bn' ? 'ওয়ার্কশিট' : effectiveLang === 'ar' ? 'ورقة عمل' : 'Worksheet'}" }
             ]
           }
         }
@@ -1130,6 +1155,7 @@ async function startServer() {
       }
 
       const parsed = JSON.parse(result.text || "{}");
+      parsed.language = effectiveLang;
       res.json(parsed);
     } catch (error: any) {
       console.error("Error in generate-detailed-plan endpoint:", error);
