@@ -203,6 +203,8 @@ export interface PageRange {
   end: number | string;
 }
 
+export type PlanLanguage = 'bn' | 'en' | 'ar';
+
 export interface LessonPlanRequest {
   file?: File | null;
   fileId?: string;
@@ -222,6 +224,7 @@ export interface LessonPlanRequest {
   sampleLessonPlan?: string;
   topicTitle?: string;
   chapterTitle?: string;
+  language?: PlanLanguage | string;
 }
 
 export type QuizQuestionType = 'mcq' | 'short' | 'true_false' | 'essay' | 'blank';
@@ -340,6 +343,7 @@ export interface DetailedPlanRequest {
   pageRanges?: { start: number | string; end: number | string }[];
   teachingMethodology?: string;
   additionalInstructions?: string;
+  language?: PlanLanguage | string;
 }
 
 // ==========================================

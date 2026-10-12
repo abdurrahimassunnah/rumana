@@ -140,7 +140,8 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
   allowMultiSelect = false
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'nested' | 'columns'>('nested');
+  const [subTopicSearch, setSubTopicSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'nested' | 'columns'>('columns');
   const [isBookMenuOpen, setIsBookMenuOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
@@ -216,6 +217,12 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
       }
     }
   }, [activeChapters, activeChapterId]);
+
+  React.useEffect(() => {
+    if (selectedChapter && selectedChapter.id) {
+      setActiveChapterId(selectedChapter.id);
+    }
+  }, [selectedChapter]);
 
   // Filter TOC based on search query
   const filteredChapters = useMemo(() => {
@@ -1208,37 +1215,62 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
               </div>
 
               {/* Right Column: Topics / Subheadings of Selected Chapter */}
-              <div className="md:col-span-7 bg-slate-50/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 min-h-[300px]">
+              <div className="md:col-span-7 bg-slate-50/70 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 min-h-[360px]">
                 {currentChapter ? (
                   <>
-                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-200 dark:border-slate-800">
                       <div>
-                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                          নির্বাচিত অধ্যায়ের পাঠসমূহ
-                        </span>
-                        <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/60">
+                            ডান কলাম: সাব-হেডিং ও পাঠসমূহ
+                          </span>
+                          <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                            পৃষ্ঠা {currentChapter.startPage}-{currentChapter.endPage}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-1">
                           {currentChapter.title}
                         </h4>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                          মোট {currentChapter.topics?.length || 0}টি সাব-হেডিং / বিষয় অন্তর্ভুক্ত
+                        </span>
                       </div>
 
                       {onSelectFullChapter && (
                         <button
                           type="button"
                           onClick={() => onSelectFullChapter(currentChapter)}
-                          className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-2xs cursor-pointer"
+                          className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
                         >
-                          পুরো অধ্যায়
+                          <CheckSquare className="w-3.5 h-3.5" />
+                          <span>পুরো অধ্যায় নির্বাচন</span>
                         </button>
                       )}
                     </div>
 
-                    <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                    {/* Subheading quick search if many topics */}
+                    {(currentChapter.topics?.length || 0) > 4 && (
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="এই অধ্যায়ের ভেতরের সাব-হেডিং খুঁজুন (যেমন: সালাত, পবিত্রতা, হজ্জ)..."
+                          value={subTopicSearch}
+                          onChange={(e) => setSubTopicSearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 shadow-2xs"
+                        />
+                      </div>
+                    )}
+
+                    <div className="space-y-2 max-h-[440px] overflow-y-auto pr-1">
                       {(!currentChapter.topics || currentChapter.topics.length === 0) ? (
                         <div className="py-8 text-center text-xs text-slate-400">
                           এই অধ্যায়ে কোনো আলাদা উপশিরোনাম নেই।
                         </div>
                       ) : (
-                        currentChapter.topics.map((t, idx) => {
+                        currentChapter.topics
+                          .filter(t => !subTopicSearch.trim() || t.title.toLowerCase().includes(subTopicSearch.toLowerCase()) || (t.contentExcerpt && t.contentExcerpt.toLowerCase().includes(subTopicSearch.toLowerCase())))
+                          .map((t, idx) => {
                           const isChecked = isTopicChecked(t.id);
                           const isSingleSelected = selectedTopic && selectedTopic.id === t.id;
 
@@ -1254,8 +1286,8 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                               }}
                               className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
                                 isChecked || isSingleSelected
-                                  ? 'bg-white dark:bg-slate-800 border-emerald-500 ring-1 ring-emerald-500/20 text-slate-900 dark:text-white shadow-2xs'
-                                  : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-emerald-300 text-slate-700 dark:text-slate-300'
+                                  ? 'bg-emerald-50/90 dark:bg-emerald-950/70 border-emerald-500 ring-2 ring-emerald-500/30 text-slate-900 dark:text-white shadow-xs'
+                                  : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-emerald-300 hover:bg-emerald-50/30 text-slate-700 dark:text-slate-300'
                               }`}
                             >
                               <div className="flex items-start gap-2.5 min-w-0 flex-1">
@@ -1268,20 +1300,34 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                                 </span>
 
                                 <div className="min-w-0 flex-1">
-                                  <h5 className="text-xs font-bold text-slate-900 dark:text-white">
+                                  <h5 className="text-xs font-bold text-slate-900 dark:text-white leading-snug">
                                     {t.title}
                                   </h5>
                                   {t.contentExcerpt && (
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                                       {t.contentExcerpt}
                                     </p>
                                   )}
                                 </div>
                               </div>
 
-                              <span className="text-[10px] font-mono bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 shrink-0">
-                                পৃ: {t.pageNumber}
-                              </span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-[10px] font-mono bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">
+                                  পৃ: {t.pageNumber}{t.endPageNumber ? `-${t.endPageNumber}` : ''}
+                                </span>
+
+                                <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+                                  isChecked || isSingleSelected
+                                    ? 'bg-emerald-600 text-white shadow-2xs'
+                                    : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                                }`}>
+                                  {(isChecked || isSingleSelected) ? (
+                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                  ) : (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           );
                         })

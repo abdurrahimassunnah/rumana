@@ -20,7 +20,8 @@ import {
   Calendar,
   GraduationCap,
   Plus,
-  Library
+  Library,
+  Globe
 } from 'lucide-react';
 import { TOCChapter, TOCTopic, GradeLevel, SavedBook, BOOK_CATEGORIES, ALL_GRADE_LEVELS } from '../types';
 import { extractPdfTableOfContents } from '../services/geminiService';
@@ -63,8 +64,8 @@ interface PDFTableOfContentsProps {
   onDeleteBook?: (bookId: string) => void;
   onBookExtracted?: (book: SavedBook) => void;
   onGenerateQuestions: (selectedTopics: SelectedTopicItem[], extractedContent: string, file?: File | null) => void;
-  onGenerateLessonPlan?: (selectedTopics: SelectedTopicItem[], extractedContent: string) => void;
-  onGenerateDetailedPlan?: (selectedTopics: SelectedTopicItem[], extractedContent: string) => void;
+  onGenerateLessonPlan?: (selectedTopics: SelectedTopicItem[], extractedContent: string, language?: string) => void;
+  onGenerateDetailedPlan?: (selectedTopics: SelectedTopicItem[], extractedContent: string, language?: string) => void;
   onUploadPdf?: (file: File) => void;
   isExtractingPdf?: boolean;
   extractionProgress?: string;
@@ -88,6 +89,7 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
   const [internalChapters, setInternalChapters] = useState<TOCChapter[] | null>(externalChapters);
   const [bookTitle, setBookTitle] = useState<string>(externalBookTitle);
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(GradeLevel.Grade5);
+  const [planLanguage, setPlanLanguage] = useState<'bn' | 'en' | 'ar'>('bn');
   
   // Selected Topics (Multi-selection)
   const [selectedTopicItems, setSelectedTopicItems] = useState<SelectedTopicItem[]>([]);
@@ -260,9 +262,9 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
     if (type === 'questions') {
       onGenerateQuestions(selectedTopicItems, content, uploadedPdf);
     } else if (type === 'lesson_plan' && onGenerateLessonPlan) {
-      onGenerateLessonPlan(selectedTopicItems, content);
+      onGenerateLessonPlan(selectedTopicItems, content, planLanguage);
     } else if (type === 'detailed_plan' && onGenerateDetailedPlan) {
-      onGenerateDetailedPlan(selectedTopicItems, content);
+      onGenerateDetailedPlan(selectedTopicItems, content, planLanguage);
     }
   };
 
@@ -421,6 +423,57 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
                 সব বাতিল করুন
               </button>
             )}
+          </div>
+
+          {/* Language Selector Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/60 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-200/80 dark:border-emerald-800">
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                  লেসন প্ল্যান তৈরির ভাষা নির্বাচন (LANGUAGE)
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
+                  বাংলা, ইংরেজি অথবা আরবি ভাষায় সরাসরি প্ল্যান তৈরি হবে
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-lg border border-emerald-200 dark:border-emerald-800 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setPlanLanguage('bn')}
+                className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                  planLanguage === 'bn'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+                }`}
+              >
+                🇧🇩 বাংলা
+              </button>
+              <button
+                type="button"
+                onClick={() => setPlanLanguage('en')}
+                className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                  planLanguage === 'en'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+                }`}
+              >
+                🇬🇧 English
+              </button>
+              <button
+                type="button"
+                onClick={() => setPlanLanguage('ar')}
+                className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                  planLanguage === 'ar'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+                }`}
+              >
+                🇸🇦 العربية
+              </button>
+            </div>
           </div>
 
           {/* Action Buttons */}

@@ -442,11 +442,27 @@ async function startServer() {
         ? request.pageRanges.map((r: any, i: number) => `রেঞ্জ ${i + 1}: পৃষ্ঠা ${r.start} থেকে ${r.end}`).join(", ")
         : `পৃষ্ঠা ${request.startPage} থেকে ${request.endPage}`;
 
+      const planLang = (request.language === 'ar' || request.language === 'arabic')
+        ? 'ar'
+        : (request.language === 'en' || request.language === 'english')
+        ? 'en'
+        : 'bn';
+
+      let langInstruction = '';
+      if (planLang === 'ar') {
+        langInstruction = `\n**ভাষাগত নির্দেশনা (LANGUAGE MANDATE: ARABIC / العربية):**\nব্যবহারকারী রুটিন ও পাঠ পরিকল্পনার ভাষা হিসেবে **العربية (আরবি)** নির্বাচন করেছেন। পুরো টেবিল, কলামের নাম, C.W ও H.W এর নির্দেশনাবলী ১০০% বিশুদ্ধ আরবি ভাষায় (اللغة العربية الفصحى) তৈরি করুন। যেমন: اليوم، التاريخ، العمل الصفي (C.W)، الواجب المنزلي (H.W)।`;
+      } else if (planLang === 'en') {
+        langInstruction = `\n**LANGUAGE MANDATE: ENGLISH:**\nThe user explicitly selected **English** for this lesson routine. Generate the entire Markdown table, headers (Day, Date, Class Work (C.W), Home Work (H.W)), and all activity instructions in clear English with imperative action verbs (e.g., Read, Write, Memorize, Discuss).`;
+      } else {
+        langInstruction = `\n**ভাষাগত নির্দেশনা: বাংলা:**\nব্যবহারকারী রুটিন ও পাঠ পরিকল্পনার ভাষা হিসেবে **বাংলা** নির্বাচন করেছেন। সম্পূর্ণ টেবিল ও C.W/H.W বাংলায় অনুজ্ঞাসূচক বাক্যে (যেমন: করো, লেখো, পড়ো) তৈরি করুন।`;
+      }
+
       let prompt = `
         শ্রেণি: ${request.gradeLevel}
         দিনের সংখ্যা: ${request.duration} দিন
         পৃষ্ঠা সীমা বা সিলেবাস বিবরণী: ${pageRangeDesc}
         ${request.additionalContext ? `অতিরিক্ত নির্দেশাবলী: ${request.additionalContext}` : ""}
+        ${langInstruction}
       `;
 
       if (request.extractedText) {
@@ -877,7 +893,7 @@ async function startServer() {
 
   // API Route: Generate Detailed Pedagogical Lesson Plan (মাদরাসাতুস সুন্নাহ বিস্তারিত পাঠ পরিকল্পনা - 100% Template Match)
   app.post("/api/generate-detailed-plan", async (req, res) => {
-    const { topicTitle, chapterTitle, gradeLevel, subject, teacherName, totalDurationMinutes, planDays, content, teachingMethodology, additionalInstructions, fileData, mimeType, pageRanges, startPage, endPage } = req.body;
+    const { topicTitle, chapterTitle, gradeLevel, subject, teacherName, totalDurationMinutes, planDays, content, teachingMethodology, additionalInstructions, fileData, mimeType, pageRanges, startPage, endPage, language } = req.body;
 
     try {
       const ai = getGeminiClient(req);
@@ -893,39 +909,39 @@ async function startServer() {
         ? pageRanges.map((r: any, i: number) => `রেঞ্জ ${i + 1}: পৃষ্ঠা ${r.start} থেকে ${r.end}`).join(", ")
         : (startPage ? `পৃষ্ঠা ${startPage}${endPage ? ` থেকে ${endPage}` : ''}` : '');
 
+      const effectiveLang = (language === 'ar' || language === 'arabic')
+        ? 'ar'
+        : (language === 'en' || language === 'english')
+        ? 'en'
+        : 'bn';
+
+      const langRule = effectiveLang === 'ar'
+        ? `========================================================================================================
+        **ব্যবহারকারীর নির্বাচিত ভাষা: আরবি (MANDATORY LANGUAGE: ARABIC / اللغة العربية الفصحى بالكامل)**
+        ========================================================================================================
+        - ব্যবহারকারী স্পষ্টভাবে পাঠ পরিকল্পনার ভাষা হিসেবে **العربية (আরবি)** নির্বাচন করেছেন।
+        - পাঠ পরিকল্পনার সবকিছু (A to Z) ১০০% নিখুঁত ও বিশুদ্ধ আরবি ভাষায় (اللغة العربية الفصحى بالكامل) তৈরি করতে হবে।
+        - সকল ফিল্ড (className, topic, subject, materials, learningObjective, successCriteria, procedures, stageAndTime, activityTitle, procedurePoints, childrenDo, teacherDoes, symbolKeys meanings) আরবি ভাষায় হবে।`
+        : effectiveLang === 'en'
+        ? `========================================================================================================
+        **ব্যবহারকারীর নির্বাচিত ভাষা: ইংরেজি (MANDATORY LANGUAGE: ENGLISH / English Language Only)**
+        ========================================================================================================
+        - The user explicitly selected **English** as the language for this lesson plan.
+        - Create the ENTIRE lesson plan strictly in professional, clear English.
+        - All metadata, learning objectives, success criteria, classroom stages, teacher/student actions, materials, and notes must be in English.`
+        : `========================================================================================================
+        **ব্যবহারকারীর নির্বাচিত ভাষা: বাংলা (MANDATORY LANGUAGE: BENGALI / ১০০% প্রমিত বাংলা)**
+        ========================================================================================================
+        - ব্যবহারকারী পাঠ পরিকল্পনার ভাষা হিসেবে **বাংলা (Bengali)** নির্বাচন করেছেন।
+        - সম্পূর্ণ পাঠ পরিকল্পনা ১০০% প্রমিত বাংলা ভাষায় তৈরি করতে হবে।
+        - বাংলায় শিখনফল অবশ্যই "পাঠ শেষে শিক্ষার্থীরা..." দিয়ে শুরু হবে এবং সাফল্য নির্ণায়ক "সাফল্য নির্ণায়ক: আমি পারি:" দিয়ে শুরু হবে।
+        - শিক্ষক কার্যক্রম, শিক্ষার্থী কার্যক্রম এবং ধাপসমূহ বাংলায় হবে।`;
+
       const prompt = `
         You are a master teacher trainer and curriculum developer at Madrasatus Sunnah.
         Create an exact 100% copy-to-copy Lesson Plan matching the official "Lesson Plan Template" standard.
 
-        ========================================================================================================
-        **ভাষা সংক্রান্ত অত্যন্ত কঠোর ও অলঙ্ঘনীয় নীতি (STRICT SOURCE-LANGUAGE FIDELITY RULE - MANDATORY):**
-        ========================================================================================================
-        ১. **আরবি বই, আরবি ভাষা, কাওয়ায়েদ ও ব্যাকরণ সংক্রান্ত বিষয় হলে (Arabic Book / Arabic Language & Grammar / كتاب باللغة العربية):**
-           - **যদি বইটি আরবি ভাষায় রচিত হয় অথবা বিষয়টি আরবি ভাষা, কাওয়ায়েদ, নাহু, সরফ, মুজারে ক্রিয়া (فعل مضارع), মাজী, ফে'ল, হাদিস, ফিকহ, তাফসির, আদব ইত্যাদি শেখানোর উদ্দেশ্যে হয়:**
-           - **পাঠ পরিকল্পনার সবকিছু (A to Z) ১০০% নিখুঁত ও বিশুদ্ধ আরবি ভাষায় (اللغة العربية الفصحى بالكامل) তৈরি করতে হবে।**
-           - **কঠোর নিষেধাজ্ঞা:** কোনো বাংলা বা ইংরেজি শব্দ/বাক্য (যেমন: "উপস্থাপন", "শিক্ষার্থীরা মনোযোগ দিয়ে", "মুজারে ক্রিয়ার গঠন", "Teacher does", "Children do", "Flashcards & toys") ব্যবহার করা সম্পূর্ণ নিষিদ্ধ।
-           - **প্রতিটি ফিল্ডের নমুনা আরবি রূপ:**
-             - className: "الصف الخامس" / "الصف الأول" / "الروضة"
-             - topic: "الفعل المضارع (صياغته وعلاماته وأمثلته)"
-             - subject: "اللغة العربية (النحو والصرف)"
-             - materials: "السبورة الذكية، بطاقات تعليمية ملونة، كتاب التلميذ، أوراق عمل تفاعلية"
-             - learningObjective: "في نهاية الدرس، سيكون الطلاب قادرين على تمييز الفعل المضارع وتصريفه واستخدامه في جمل مفيدة بدقة."
-             - successCriteria: ["١. أن يحدد الطالب علامات الفعل المضارع بدقة.", "٢. أن يصرف الفعل المضارع مع الضمائر المختلفة.", "٣. أن يركب جملتين مفيدتين باستخدام الفعل المضارع."]
-             - stageAndTime: "التهيئة والتمهيد\n٣-٥ دقائق", "العرض والنشاط الرئيسي\n١٥-٢٠ دقيقة", "التطبيق والممارسة\n١٠ دقائق", "التقييم والختام\n٥ دقائق"
-             - activityTitle: "النشاط: تقديم صيغة الفعل المضارع وعلاماته"
-             - procedurePoints: ["يقوم المعلم بكتابة أمثلة على السبورة ويشرح دلالة الفعل على الحاضر والمستقبل.", "يوضح المعلم أحرف المضارعة (أ، ن، ي، ت) بالأمثلة التطبيقية."]
-             - childrenDo: "يستمع الطلاب باهتمام، ويرددون الأفعال المضارعة ويكتبونها في دفاترهم."
-             - teacherDoes: "يشرح المعلم علامات المضارع، ويوجه الأسئلة التحفيزية ويصحح النطق والكتابة."
-             - intPattern: "فصل كامل\nفردي" أو "W/C\nS"
-             - aids: "سبورة ذكية\nبطاقات" أو "SB\nFlashcards"
-             - symbolKeys: intKeys ও aidsKeys-এর অর্থগুলোও আরবিতে লিখুন (যেমন: {"symbol": "W/C", "meaning": "فصل كامل (Whole class)"}, {"symbol": "SB", "meaning": "سبورة ذكية (Smartboard)"})।
-
-        ২. **ইংরেজি বই বা বিষয় হলে (English Book / Subject):**
-           - সম্পূর্ণ পাঠ পরিকল্পনা বিশুদ্ধ ও প্রাঞ্জল ইংরেজি ভাষায় (English) হতে হবে।
-
-        ৩. **বাংলা বই বা বিষয় হলে (Bengali Book / Subject):**
-           - সম্পূর্ণ পাঠ পরিকল্পনা ১০০% প্রমিত বাংলা ভাষায় (Bengali) হতে হবে।
-           - বাংলায় শিখনফল অবশ্যই "পাঠ শেষে শিক্ষার্থীরা..." দিয়ে শুরু হবে এবং সাফল্য নির্ণায়ক "সাফল্য নির্ণায়ক: আমি পারি:" দিয়ে শুরু হবে।
+        ${langRule}
 
         **Input Details:**
         • Class: ${effectiveClass}

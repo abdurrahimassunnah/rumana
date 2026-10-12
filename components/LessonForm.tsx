@@ -1,5 +1,5 @@
 
-import { Upload, Calendar, Layers, AlertCircle, X, FileType, Loader2, Sparkles, ChevronRight, PenTool, Hash, Clock, Database, Trash2, Check, BookOpen, FileText, ClipboardList, RefreshCw, Copy, BookMarked, Sliders, Baby, Brain, Lightbulb, CheckCircle2 } from 'lucide-react';
+import { Upload, Calendar, Layers, AlertCircle, X, FileType, Loader2, Sparkles, ChevronRight, PenTool, Hash, Clock, Database, Trash2, Check, BookOpen, FileText, ClipboardList, RefreshCw, Copy, BookMarked, Sliders, Baby, Brain, Lightbulb, CheckCircle2, Globe } from 'lucide-react';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GradeLevel, LessonPlanRequest, TOCChapter, TOCTopic, SavedBook, getGradeAgeIntellectProfile } from '../types';
 import FilePreview from './FilePreview';
@@ -231,6 +231,7 @@ const LessonForm: React.FC<LessonFormProps> = ({
   ]);
   // Defaulting to Grade 5 (পঞ্চম শ্রেণি) as requested
   const [grade, setGrade] = useState<GradeLevel>(GradeLevel.Grade5);
+  const [planLanguage, setPlanLanguage] = useState<'bn' | 'en' | 'ar'>('bn');
   const [context, setContext] = useState<string>(MADRASAH_CLASS_5_TOC[3].topics[9].contentExcerpt || '');
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -581,9 +582,10 @@ const LessonForm: React.FC<LessonFormProps> = ({
       additionalContext: context,
       holidays: '',
       weeks: 1, // legacy support
-      sampleLessonPlan: sampleText
+      sampleLessonPlan: sampleText,
+      language: planLanguage
     });
-  }, [file, activeFileId, fileBase64Data, fileExtractedText, duration, startDate, pageRanges, grade, context, sampleText, onSubmit]);
+  }, [file, activeFileId, fileBase64Data, fileExtractedText, duration, startDate, pageRanges, grade, context, sampleText, planLanguage, onSubmit]);
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 p-8 md:p-12 transition-all relative overflow-hidden max-w-2xl mx-auto">
@@ -604,6 +606,67 @@ const LessonForm: React.FC<LessonFormProps> = ({
               {error}
             </div>
           )}
+
+          {/* Language Selection Bar: Bangla, English, Arabic */}
+          <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 bg-emerald-600 text-white rounded-xl shadow-xs shrink-0">
+                <Globe className="w-4 h-4" />
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    রুটিন ও পাঠ পরিকল্পনার ভাষা
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    ৩টি ভাষা
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  যে ভাষায় রুটিনের C.W, H.W ও পাঠ পরিকল্পনা চান তা বেছে নিন
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-2xs self-start sm:self-auto">
+              <button
+                type="button"
+                id="lesson-lang-select-bn"
+                onClick={() => setPlanLanguage('bn')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  planLanguage === 'bn'
+                    ? 'bg-emerald-600 text-white shadow-xs font-black'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+                }`}
+              >
+                <span>🇧🇩 বাংলা</span>
+              </button>
+              <button
+                type="button"
+                id="lesson-lang-select-en"
+                onClick={() => setPlanLanguage('en')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  planLanguage === 'en'
+                    ? 'bg-emerald-600 text-white shadow-xs font-black'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+                }`}
+              >
+                <span>🇬🇧 English</span>
+              </button>
+              <button
+                type="button"
+                id="lesson-lang-select-ar"
+                onClick={() => setPlanLanguage('ar')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                  planLanguage === 'ar'
+                    ? 'bg-emerald-600 text-white shadow-xs font-black'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+                }`}
+              >
+                <span>🇸🇦 العربية</span>
+              </button>
+            </div>
+          </div>
 
           {/* Source Selection Tabs */}
           <div className="flex bg-slate-100 dark:bg-gray-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-gray-700">

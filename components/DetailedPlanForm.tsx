@@ -13,7 +13,8 @@ import {
   FileSpreadsheet,
   Calendar,
   Hash,
-  Layers
+  Layers,
+  Globe
 } from 'lucide-react';
 import { DetailedPlanRequest, TOCChapter, TOCTopic, SavedBook } from '../types';
 import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
@@ -52,6 +53,7 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
   onSelectSample
 }) => {
   const [selectedGrade, setSelectedGrade] = useState<string>('KG');
+  const [planLanguage, setPlanLanguage] = useState<'bn' | 'en' | 'ar'>('bn');
   const [subject, setSubject] = useState<string>('English (Literacy)');
   const [teacherName, setTeacherName] = useState<string>('Kabir Ustadh');
   const [activeTab, setActiveTab] = useState<'toc' | 'pages' | 'custom' | 'upload'>('toc');
@@ -246,7 +248,8 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       startPage: firstRange.start,
       endPage: firstRange.end,
       pageRanges: cleanRanges,
-      additionalInstructions
+      additionalInstructions,
+      language: planLanguage
     };
 
     onSubmit(request);
@@ -283,6 +286,66 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        {/* Language Selection Bar: Bangla, English, Arabic */}
+        <div className="p-4 bg-gradient-to-r from-teal-50/80 via-emerald-50/60 to-cyan-50/80 dark:from-teal-950/50 dark:via-slate-900/60 dark:to-emerald-950/50 border border-teal-200 dark:border-teal-800/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 bg-teal-600 dark:bg-teal-700 text-white rounded-xl shadow-xs shrink-0">
+              <Globe className="w-4 h-4" />
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                  লেসন প্ল্যান তৈরির ভাষা নির্বাচন (PLAN LANGUAGE)
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                  ৩টি ভাষা সমর্থিত
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                নির্বাচিত ভাষায় সম্পূর্ণ লেসন প্ল্যান (শিখনফল, শিক্ষক-শিক্ষার্থী কার্যকলাপ ও সেশন বণ্টন) তৈরি হবে
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-teal-200 dark:border-teal-800 shadow-2xs self-start sm:self-auto">
+            <button
+              type="button"
+              id="lang-select-bn"
+              onClick={() => setPlanLanguage('bn')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                planLanguage === 'bn'
+                  ? 'bg-teal-600 text-white shadow-xs font-black'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-teal-600 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span>🇧🇩 বাংলা</span>
+            </button>
+            <button
+              type="button"
+              id="lang-select-en"
+              onClick={() => setPlanLanguage('en')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                planLanguage === 'en'
+                  ? 'bg-teal-600 text-white shadow-xs font-black'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-teal-600 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span>🇬🇧 English</span>
+            </button>
+            <button
+              type="button"
+              id="lang-select-ar"
+              onClick={() => setPlanLanguage('ar')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                planLanguage === 'ar'
+                  ? 'bg-teal-600 text-white shadow-xs font-black'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-teal-600 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span>🇸🇦 العربية</span>
+            </button>
+          </div>
+        </div>
         {/* Row 1: Grade Level, Subject, Teacher's Name, Duration, Plan Days */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
           {/* Class */}

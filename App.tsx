@@ -694,7 +694,8 @@ const App: React.FC = () => {
   // Handler from PDF Table of Contents: Create Lesson Plan
   const handleTOCGenerateLessonPlan = (
     selectedTopics: SelectedTopicItem[],
-    extractedContent: string
+    extractedContent: string,
+    language?: string
   ) => {
     const topicTitles = selectedTopics.map(t => t.topic.title).join(', ');
     const firstPage = Math.min(...selectedTopics.map(t => t.topic.pageNumber));
@@ -709,7 +710,8 @@ const App: React.FC = () => {
       pageRanges: [{ start: firstPage, end: lastPage }],
       extractedText: extractedContent,
       topicTitle: topicTitles,
-      additionalContext: `নির্বাচিত পাঠসমূহ: ${topicTitles}`
+      additionalContext: `নির্বাচিত পাঠসমূহ: ${topicTitles}`,
+      language: language || 'bn'
     };
 
     setCurrentMode('lesson_notes');
@@ -719,7 +721,8 @@ const App: React.FC = () => {
   // Handler from PDF Table of Contents: Create Detailed Plan
   const handleTOCGenerateDetailedPlan = (
     selectedTopics: SelectedTopicItem[],
-    extractedContent: string
+    extractedContent: string,
+    language?: string
   ) => {
     const firstTopic = selectedTopics[0];
     const topicTitles = selectedTopics.map(t => t.topic.title).join(' ও ');
@@ -731,7 +734,8 @@ const App: React.FC = () => {
       subject: 'সাধারণ বিষয়',
       totalDurationMinutes: 40,
       content: extractedContent,
-      teachingMethodology: 'প্রশ্নোত্তর, দলগত আলোচনা ও সক্রিয় অংশগ্রহণ পদ্ধতি'
+      teachingMethodology: 'প্রশ্নোত্তর, দলগত আলোচনা ও সক্রিয় অংশগ্রহণ পদ্ধতি',
+      language: language || 'bn'
     };
 
     setCurrentMode('detailed_plan');
