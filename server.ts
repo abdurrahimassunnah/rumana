@@ -241,11 +241,17 @@ async function startServer() {
 
   // API Route: Generate Complete Exercise (অনুশীলনী ও প্রশ্নপত্র তৈরি)
   app.post("/api/generate-exercise", async (req, res) => {
-    const { topicTitle, chapterTitle, gradeLevel, content, selectedQuestionTypes, questionCounts, difficulty, additionalInstructions, fileData, mimeType, pageRanges, startPage, endPage } = req.body;
+    const { topicTitle, chapterTitle, gradeLevel, content, selectedQuestionTypes, questionCounts, difficulty, additionalInstructions, fileData, mimeType, pageRanges, startPage, endPage, language } = req.body;
 
     try {
       const ai = getGeminiClient(req);
       const gradeProfile = getGradeAgeAndIntellectDetails(gradeLevel);
+
+      const targetLang = (language === 'ar' || language === 'arabic')
+        ? 'ar'
+        : (language === 'en' || language === 'english')
+        ? 'en'
+        : 'bn';
 
       const activeTypes: string[] = Array.isArray(selectedQuestionTypes) && selectedQuestionTypes.length > 0
         ? selectedQuestionTypes
@@ -288,18 +294,18 @@ async function startServer() {
         আপনার দায়িত্ব হলো শিক্ষার্থীদের জন্য পাঠ্যবইয়ের নির্দিষ্ট পাঠের ভিত্তিতে একটি সমৃদ্ধ, নির্ভুল ও পূর্ণাঙ্গ অনুশীলনী (Exercise / Assessment) তৈরি করা।
 
         ========================================================================================================
-        **ভাষা সংক্রান্ত অত্যন্ত কঠোর ও অলঙ্ঘনীয় নীতি (STRICT SOURCE-LANGUAGE FIDELITY RULE - MANDATORY):**
+        **ভাষা সংক্রান্ত অত্যন্ত কঠোর ও অলঙ্ঘনীয় নীতি (STRICT TARGET LANGUAGE MANDATE: ${targetLang.toUpperCase()}):**
         ========================================================================================================
-        ১. **আরবি বই বা কিতাব হলে (Arabic Book / كتاب باللغة العربية / كتب تعليم اللغة العربية للأطفال):**
-           - যদি বইটি আরবি ভাষায় রচিত হয় বা আরবি ভাষা শেখার জন্য হয় (যেমন: আরবি ভাষা, কাওয়ায়েদ, নাহু, সরফ, ফিকহ, তাফসির, হাদিস, আদব ইত্যাদি):
-           - প্রধান লক্ষ্য হলো শিক্ষার্থীরা যেন আরবি ভাষা শেখে ও প্রয়োগ করে।
-           - অনুশীলনী, শিরোনাম, প্রতিটি সেকশন টাইটেল (যেমন: "القسم الأول: أسئلة قصيرة", "القسم الثاني: أسئلة الاختيار من متعدد", "القسم الثالث: صح أو خطأ", "القسم الرابع: أكمل الفراغ", "القسم الخامس: أسئلة مقالية", "القسم السادس: التوصيل"), সেকশনের নির্দেশাবলী (যেমন: "أجب عن الأسئلة الآتية باختصار:", "اختر الإجابة الصحيحة مما يأتي:", "بيّن ما إذا كانت العبارة صحيحة أم خاطئة:"), সমস্ত প্রশ্ন, অপশন (أ، ب، ج، د), এবং সমাধান (answer & explanation) **১০০% নিখুঁত আরবি ভাষায় (اللغة العربية الفصحى)** হতে হবে। কোনো বাংলা বা ইংরেজি বাক্য লিখবেন না।
-
-        ২. **ইংরেজি বই হলে (English Book / Subject):**
-           - সম্পূর্ণ অনুশীলনী, সেকশন টাইটেল, নির্দেশাবলী, প্রশ্ন ও উত্তর ১০০% প্রাঞ্জল ইংরেজিতে হতে হবে।
-
-        ৩. **বাংলা বই হলে (Bengali Book):**
-           - সম্পূর্ণ অনুশীলনী ১০০% বাংলায় হবে।
+        ${targetLang === 'ar' ? `
+        - **লক্ষ্য ভাষা: আরবি (العربية الفصحى بالكامل)**
+        - অনুশীলনী, শিরোনাম, প্রতিটি সেকশন টাইটেল (যেমন: "القسم الأول: أسئلة قصيرة", "القسم الثاني: أسئلة الاختيار من متعدد", "القسم الثالث: صح أو خطأ", "القسم الرابع: أكمل الفراغ", "القسم الخامس: أسئلة مقالية", "القسم السادس: التوصيل"), সেকশনের নির্দেশাবলী (যেমন: "أجب عن الأسئلة الآتية باختصار:", "اختر الإجابة الصحيحة مما يأتي:", "بيّن ما إذا كانت العبارة صحيحة أم خاطئة:"), সমস্ত প্রশ্ন, অপশন (أ، ب، ج، د), এবং সমাধান (answer & explanation) **১০০% নিখুঁত আরবি ভাষায় (اللغة العربية الفصحى)** হতে হবে। কোনো বাংলা বা ইংরেজি বাক্য লিখবেন না।
+        ` : targetLang === 'en' ? `
+        - **লক্ষ্য ভাষা: ENGLISH (100% Comprehensive English)**
+        - সমস্ত শিরোনাম, সেকশন টাইটেল (e.g., "Section 1: Short Answer Questions", "Section 2: Multiple Choice Questions (MCQ)", "Section 3: True / False", "Section 4: Fill in the Blanks", "Section 5: Descriptive Questions"), নির্দেশাবলী, সমস্ত প্রশ্ন, অপশন ও সমাধান ১০০% ইংরেজিতে হতে হবে।
+        ` : `
+        - **লক্ষ্য ভাষা: বাংলা (BENGALI)**
+        - সম্পূর্ণ অনুশীলনী, সেকশন টাইটেল, নির্দেশাবলী, প্রশ্ন ও উত্তর ১০০% প্রাঞ্জল ও প্রমিত বাংলায় হতে হবে।
+        `}
 
         **কঠোর নিষেধাজ্ঞা (CRITICAL MANDATORY RULES):**
         ১. [কোনো সারসংক্ষেপ নয়]: পাঠ্যের কোনো সারাংশ বা সামারি (Summary) তৈরি করবেন না। শুধুমাত্র সরাসরি অনুশীলনী ও প্রশ্নপত্র তৈরি করবেন।

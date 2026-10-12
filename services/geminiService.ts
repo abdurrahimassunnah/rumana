@@ -803,6 +803,13 @@ export const generateExerciseClient = async (
 
   const gradeProfile = getGradeAgeIntellectProfile(request.gradeLevel);
 
+  const targetLang = request.language || 'bn';
+  const langMandate = targetLang === 'ar'
+    ? 'العربية الفصحى بالكامل (অনুশীলনীর সমস্ত প্রশ্ন, সেকশন টাইটেল, নির্দেশাবলী ও উত্তর ১০০% নিখুঁত আরবি ভাষায় তৈরি করবেন)'
+    : targetLang === 'en'
+    ? 'ENGLISH (100% Comprehensive English - questions, titles, instructions, options, and answers must be in English)'
+    : 'বাংলা (BENGALI - সমস্ত প্রশ্ন, সেকশন টাইটেল, নির্দেশাবলী ও উত্তর ১০০% বাংলায় হবে)';
+
   const pageRangeDesc = (request.pageRanges && Array.isArray(request.pageRanges) && request.pageRanges.length > 0)
     ? request.pageRanges.map((r: any, i: number) => `রেঞ্জ ${i + 1}: পৃষ্ঠা ${r.start} থেকে ${r.end}`).join(", ")
     : (request.startPage ? `পৃষ্ঠা ${request.startPage}${request.endPage ? ` থেকে ${request.endPage}` : ''}` : '');
@@ -810,6 +817,9 @@ export const generateExerciseClient = async (
   const prompt = `
     আপনি 'মাদরাসাতুস সুন্নাহ'-এর একজন অত্যন্ত অভিজ্ঞ ইসলামিক স্টাডিজ শিক্ষক ও পরীক্ষক।
     পাঠের ভিত্তিতে একটি নিখুঁত ও পূর্ণাঙ্গ অনুশীলনী (Exercise) তৈরি করুন।
+
+    **অনুশীলনীর নির্ধারিত ভাষা (MANDATORY LANGUAGE: ${targetLang.toUpperCase()}):**
+    • ${langMandate}
 
     **কঠোর নিষেধাজ্ঞা:**
     ১. পাঠ্যের কোনো সারাংশ বা সামারি (Summary) তৈরি করবেন না। শুধুমাত্র সরাসরি অনুশীলনী ও প্রশ্নপত্র তৈরি করবেন।

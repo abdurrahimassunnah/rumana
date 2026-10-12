@@ -32,6 +32,22 @@ import {
   Merge
 } from 'lucide-react';
 import { TOCChapter, TOCTopic, SavedBook, BOOK_CATEGORIES, ALL_GRADE_LEVELS, GradeLevel } from '../types';
+import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
+
+export const normalizeBanglaSearch = (text: string): string => {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\u09AF\u09BC/g, '\u09DF') // nukta ya -> ya (য়)
+    .replace(/\u09A1\u09BC/g, '\u09DC') // nukta da -> ra (ড়)
+    .replace(/\u09A2\u09BC/g, '\u09DD') // nukta dha -> rha (ঢ়)
+    .replace(/াএ/g, 'ায়ে') // normalize এ vs য়ে after akar (মাসায়েল vs মাসায়েল)
+    .replace(/ায়ে/g, 'ায়ে')
+    .replace(/্/g, '') // strip virama
+    .replace(/\s+/g, ' ')
+    .trim();
+};
 
 interface TOCSelectorProps {
   chapters?: TOCChapter[] | null;
@@ -158,15 +174,19 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const activeChapters = useMemo(() => {
-    return chapters && chapters.length > 0 ? chapters : [];
-  }, [chapters]);
+  const [showAllInActiveChapter, setShowAllInActiveChapter] = useState(false);
 
   // Find currently active book in savedBooks if available
   const currentSavedBook = useMemo(() => {
     if (!bookTitle && (!savedBooks || savedBooks.length === 0)) return null;
     return savedBooks.find(b => b.title === bookTitle || b.chapters === chapters) || (savedBooks.length > 0 ? savedBooks[0] : null);
   }, [savedBooks, bookTitle, chapters]);
+
+  const activeChapters = useMemo(() => {
+    if (chapters && chapters.length > 0) return chapters;
+    if (currentSavedBook && currentSavedBook.chapters && currentSavedBook.chapters.length > 0) return currentSavedBook.chapters;
+    return MADRASAH_CLASS_5_TOC;
+  }, [chapters, currentSavedBook]);
 
   // Effective book display title and category/purpose
   const displayTitle = useMemo(() => {
@@ -228,26 +248,52 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
     }
   }, [selectedChapter]);
 
-  // Filter TOC based on search query
+  // Reset subTopicSearch and showAll state when changing active chapter
+  React.useEffect(() => {
+    setSubTopicSearch('');
+    setShowAllInActiveChapter(false);
+  }, [activeChapterId]);
+
+  // Filter TOC based on search query with Bangla tolerance
   const filteredChapters = useMemo(() => {
     if (!searchQuery.trim()) {
       return activeChapters;
     }
-    const q = searchQuery.toLowerCase();
-    return activeChapters.map(ch => ({
-      ...ch,
-      topics: (ch.topics || []).filter(t => 
-        t.title.toLowerCase().includes(q) || 
-        (t.contentExcerpt && t.contentExcerpt.toLowerCase().includes(q)) ||
-        ch.title.toLowerCase().includes(q)
-      )
-    })).filter(ch => (ch.topics && ch.topics.length > 0) || ch.title.toLowerCase().includes(q));
+    const qNorm = normalizeBanglaSearch(searchQuery);
+    return activeChapters.map(ch => {
+      const chTitleNorm = normalizeBanglaSearch(ch.title);
+      const chArabicNorm = normalizeBanglaSearch(ch.arabicTitle || '');
+      const chMatch = chTitleNorm.includes(qNorm) || chArabicNorm.includes(qNorm);
+
+      const matchingTopics = (ch.topics || []).filter(t => {
+        const tTitleNorm = normalizeBanglaSearch(t.title);
+        const tExcerptNorm = normalizeBanglaSearch(t.contentExcerpt || '');
+        return tTitleNorm.includes(qNorm) || tExcerptNorm.includes(qNorm);
+      });
+
+      // CRITICAL FIX: If the chapter title itself matched the user's search
+      // (e.g. user searched for "মাসায়েল" or "মাসায়েল" or "আহকাম"),
+      // keep all its subheadings so the user can see everything!
+      const finalTopics = chMatch ? (ch.topics || []) : matchingTopics;
+
+      return {
+        ...ch,
+        topics: finalTopics,
+        matchedByChapterTitle: chMatch,
+        matchingTopicsCount: matchingTopics.length
+      };
+    }).filter(ch => (ch.topics && ch.topics.length > 0) || (ch as any).matchedByChapterTitle);
   }, [activeChapters, searchQuery]);
+
+  // Unabridged active chapter (contains all topics without search exclusion)
+  const fullCurrentChapter = useMemo(() => {
+    return activeChapters.find(ch => ch.id === activeChapterId) || activeChapters[0] || null;
+  }, [activeChapters, activeChapterId]);
 
   // Current active chapter to display topics from
   const currentChapter = useMemo(() => {
-    return filteredChapters.find(ch => ch.id === activeChapterId) || filteredChapters[0] || null;
-  }, [filteredChapters, activeChapterId]);
+    return filteredChapters.find(ch => ch.id === activeChapterId) || filteredChapters[0] || fullCurrentChapter || null;
+  }, [filteredChapters, activeChapterId, fullCurrentChapter]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0 && onUploadPdf) {
@@ -978,8 +1024,21 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                 placeholder="অধ্যায় বা পাঠ খুঁজুন..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 shadow-2xs"
+                className="w-full pl-9 pr-8 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 shadow-2xs"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setShowAllInActiveChapter(false);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  title="অনুসন্ধান মুছুন"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -1329,7 +1388,7 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                           {currentChapter.title}
                         </h4>
                         <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                          মোট {currentChapter.topics?.length || 0}টি সাব-হেডিং / বিষয় অন্তর্ভুক্ত
+                          মোট {fullCurrentChapter?.topics?.length || currentChapter.topics?.length || 0}টি সাব-হেডিং / বিষয় অন্তর্ভুক্ত
                         </span>
                       </div>
 
@@ -1349,29 +1408,95 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                       </button>
                     </div>
 
+                    {/* Notice if search query filtered out some topics in this chapter */}
+                    {searchQuery.trim() && fullCurrentChapter && fullCurrentChapter.topics && (currentChapter.topics?.length || 0) < fullCurrentChapter.topics.length && (
+                      <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Search className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span className="text-amber-900 dark:text-amber-200 truncate">
+                            সার্চ ফিল্টার '<strong>{searchQuery}</strong>' সক্রিয় ({currentChapter.topics?.length || 0}টি সাব-হেডিং মিল পাওয়া গেছে / মোট {fullCurrentChapter.topics.length}টি)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setShowAllInActiveChapter(prev => !prev)}
+                            className="px-2.5 py-1 bg-amber-200/80 hover:bg-amber-300 dark:bg-amber-900 text-amber-900 dark:text-amber-100 rounded-lg font-bold text-[11px] cursor-pointer"
+                          >
+                            {showAllInActiveChapter ? 'ফিল্টারকৃত সাব-হেডিং দেখুন' : `সব ${fullCurrentChapter.topics.length}টি সাব-হেডিং দেখুন`}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSearchQuery('');
+                              setShowAllInActiveChapter(false);
+                            }}
+                            className="p-1 hover:bg-amber-200 dark:hover:bg-amber-900 rounded-md text-amber-700 dark:text-amber-300 cursor-pointer"
+                            title="সার্চ মুছুন"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Subheading quick search if many topics */}
-                    {(currentChapter.topics?.length || 0) > 4 && (
+                    {((fullCurrentChapter?.topics?.length || currentChapter.topics?.length || 0) > 4) && (
                       <div className="relative">
                         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
-                          placeholder="এই অধ্যায়ের ভেতরের সাব-হেডিং খুঁজুন (যেমন: সালাত, পবিত্রতা, হজ্জ)..."
+                          placeholder="এই অধ্যায়ের ভেতরের সাব-হেডিং খুঁজুন (যেমন: সালাত, পবিত্রতা, হজ্জ, কুরবানি)..."
                           value={subTopicSearch}
                           onChange={(e) => setSubTopicSearch(e.target.value)}
-                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 shadow-2xs"
+                          className="w-full pl-8 pr-8 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:border-emerald-500 shadow-2xs"
                         />
+                        {subTopicSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setSubTopicSearch('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            title="মুছুন"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     )}
 
                     <div className="space-y-2 max-h-[440px] overflow-y-auto pr-1">
-                      {(!currentChapter.topics || currentChapter.topics.length === 0) ? (
-                        <div className="py-8 text-center text-xs text-slate-400">
-                          এই অধ্যায়ে কোনো আলাদা উপশিরোনাম নেই।
-                        </div>
-                      ) : (
-                        currentChapter.topics
-                          .filter(t => !subTopicSearch.trim() || t.title.toLowerCase().includes(subTopicSearch.toLowerCase()) || (t.contentExcerpt && t.contentExcerpt.toLowerCase().includes(subTopicSearch.toLowerCase())))
-                          .map((t, idx) => {
+                      {(() => {
+                        const rawTopics = (showAllInActiveChapter && fullCurrentChapter?.topics)
+                          ? fullCurrentChapter.topics
+                          : (currentChapter.topics || []);
+                        const filtered = rawTopics.filter(t => {
+                          if (!subTopicSearch.trim()) return true;
+                          const sq = normalizeBanglaSearch(subTopicSearch);
+                          return normalizeBanglaSearch(t.title).includes(sq) || normalizeBanglaSearch(t.contentExcerpt || '').includes(sq);
+                        });
+
+                        if (filtered.length === 0) {
+                          return (
+                            <div className="py-8 text-center text-xs text-slate-400 space-y-2">
+                              <div>এই অধ্যায়ে কোনো সাব-হেডিং মিল পাওয়া যায়নি।</div>
+                              {(subTopicSearch || searchQuery) && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSubTopicSearch('');
+                                    setSearchQuery('');
+                                    setShowAllInActiveChapter(true);
+                                  }}
+                                  className="text-xs font-bold text-emerald-600 dark:text-emerald-400 underline cursor-pointer"
+                                >
+                                  সকল সাব-হেডিং দেখতে সার্চ ফিল্টার মুছুন
+                                </button>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return filtered.map((t, idx) => {
                           const isChecked = isTopicChecked(t.id);
                           const isSingleSelected = selectedTopic && selectedTopic.id === t.id;
 
@@ -1431,8 +1556,8 @@ export const TOCSelector: React.FC<TOCSelectorProps> = ({
                               </div>
                             </div>
                           );
-                        })
-                      )}
+                        });
+                      })()}
                     </div>
                   </>
                 ) : (

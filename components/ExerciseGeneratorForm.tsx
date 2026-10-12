@@ -20,9 +20,11 @@ import {
   Baby,
   CheckCircle2,
   Lightbulb,
-  Hash
+  Hash,
+  Globe
 } from 'lucide-react';
 import { GradeLevel, ExerciseRequest, ExerciseQuestionType, TOCChapter, TOCTopic, SavedBook, getGradeAgeIntellectProfile } from '../types';
+import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
 import { TOCSelector } from './TOCSelector';
 import StoredFilesManager from './StoredFilesManager';
 import PageRangeSelector from './PageRangeSelector';
@@ -59,6 +61,7 @@ export const ExerciseGeneratorForm: React.FC<ExerciseGeneratorFormProps> = ({
 }) => {
 
   const [selectedGrade, setSelectedGrade] = useState<GradeLevel>(GradeLevel.Grade5);
+  const [language, setLanguage] = useState<'bn' | 'en' | 'ar'>('bn');
   const [activeTab, setActiveTab] = useState<'toc' | 'pages' | 'custom' | 'upload'>('toc');
   
   // Page Ranges state
@@ -205,20 +208,19 @@ export const ExerciseGeneratorForm: React.FC<ExerciseGeneratorFormProps> = ({
 
   // Auto-select first chapter & topic when chapters are loaded/uploaded
   useEffect(() => {
-    if (uploadedChapters && uploadedChapters.length > 0) {
-      if (!selectedChapter || !uploadedChapters.some(c => c.id === selectedChapter.id)) {
-        const firstCh = uploadedChapters[0];
+    const effectiveChapters = (uploadedChapters && uploadedChapters.length > 0) ? uploadedChapters : MADRASAH_CLASS_5_TOC;
+    if (effectiveChapters && effectiveChapters.length > 0) {
+      if (!selectedChapter || !effectiveChapters.some(c => c.id === selectedChapter.id)) {
+        const firstCh = effectiveChapters[0];
         setSelectedChapter(firstCh);
+        setCustomChapterTitle(firstCh.title);
         if (firstCh.topics && firstCh.topics.length > 0) {
           setSelectedTopic(firstCh.topics[0]);
           setSelectedTopics([firstCh.topics[0]]);
+          setCustomTopicTitle(`${firstCh.topics[0].topicNumber ? `${firstCh.topics[0].topicNumber}. ` : ''}${firstCh.topics[0].title}`);
           setContent(firstCh.topics[0].contentExcerpt || `বইয়ের সংশ্লিষ্ট পাঠ: ${firstCh.topics[0].title} (পৃষ্ঠা ${firstCh.topics[0].pageNumber})`);
         }
       }
-    } else {
-      setSelectedChapter(null);
-      setSelectedTopic(null);
-      setSelectedTopics([]);
     }
   }, [uploadedChapters]);
 
@@ -240,36 +242,79 @@ export const ExerciseGeneratorForm: React.FC<ExerciseGeneratorFormProps> = ({
     setCustomChapterTitle(chapter.title);
     setCustomTopicTitle(`${topic.topicNumber ? `${topic.topicNumber}. ` : ''}${topic.title}`);
     setContent(topic.contentExcerpt || `বইয়ের সংশ্লিষ্ট পাঠ: ${topic.title} (পৃষ্ঠা ${topic.pageNumber}${topic.endPageNumber ? `-${topic.endPageNumber}` : ''})`);
+    setPageRanges([{ id: 'ex_rng_1', start: topic.pageNumber, end: topic.endPageNumber || topic.pageNumber }]);
   };
 
   const handleToggleTopic = (chapter: TOCChapter, topic: TOCTopic) => {
     setSelectedChapter(chapter);
+    setCustomChapterTitle(chapter.title);
     setIsEntireChapterSelected(false);
     
+    let updated: TOCTopic[] = [];
     if (selectedTopics.some(t => t.id === topic.id)) {
-      const remaining = selectedTopics.filter(t => t.id !== topic.id);
-      setSelectedTopics(remaining);
-      if (remaining.length > 0) {
-        setSelectedTopic(remaining[0]);
-      } else {
-        setSelectedTopic(null);
-      }
+      updated = selectedTopics.filter(t => t.id !== topic.id);
     } else {
-      const updated = [...selectedTopics, topic];
-      setSelectedTopics(updated);
-      setSelectedTopic(topic);
+      updated = [...selectedTopics, topic];
+    }
+    
+    setSelectedTopics(updated);
+    if (updated.length > 0) {
+      setSelectedTopic(updated[0]);
+      const titles = updated.map(t => `${t.topicNumber ? `${t.topicNumber}. ` : ''}${t.title}`).join(', ');
+      setCustomTopicTitle(titles);
+      const excerpts = updated.map((t, i) => `[পাঠ ${i + 1}] অধ্যায়: ${chapter.title} | বিষয়: ${t.title} (পৃষ্ঠা ${t.pageNumber}${t.endPageNumber ? `-${t.endPageNumber}` : ''})\n${t.contentExcerpt || ''}`).join('\n\n');
+      setContent(excerpts);
+      const minPage = Math.min(...updated.map(t => typeof t.pageNumber === 'number' ? t.pageNumber : parseInt(t.pageNumber as any) || 1));
+      const maxPage = Math.max(...updated.map(t => typeof t.endPageNumber === 'number' ? t.endPageNumber : typeof t.pageNumber === 'number' ? t.pageNumber : 10));
+      setPageRanges([{ id: 'ex_rng_1', start: minPage, end: maxPage }]);
+    } else {
+      setSelectedTopic(null);
+      setContent('');
     }
   };
 
   const handleSelectFullChapter = (chapter: TOCChapter) => {
     setSelectedChapter(chapter);
+    setCustomChapterTitle(chapter.title);
     setIsEntireChapterSelected(true);
     if (chapter.topics && chapter.topics.length > 0) {
       setSelectedTopics([...chapter.topics]);
       setSelectedTopic(chapter.topics[0]);
-      setCustomTopicTitle(`সম্পূর্ণ অধ্যায়: ${chapter.title} (সকল পাঠ)`);
-      setContent(`অধ্যায়: ${chapter.title}, পৃষ্ঠা ${chapter.startPage}-${chapter.endPage} এর অন্তর্ভুক্ত সকল পাঠের ওপর পরীক্ষা ও অনুশীলনী।`);
+      setCustomTopicTitle(`সম্পূর্ণ অধ্যায়: ${chapter.title} (সকল ${chapter.topics.length}টি পাঠ)`);
+      const excerpts = chapter.topics.map((t, i) => `[পাঠ ${i + 1}] ${t.title} (পৃষ্ঠা ${t.pageNumber}${t.endPageNumber ? `-${t.endPageNumber}` : ''})\n${t.contentExcerpt || ''}`).join('\n\n');
+      setContent(`অধ্যায়: ${chapter.title}, পৃষ্ঠা ${chapter.startPage}-${chapter.endPage} এর অন্তর্ভুক্ত সকল পাঠের ওপর পরীক্ষা ও অনুশীলনী।\n\n${excerpts}`);
+      setPageRanges([{ id: 'ex_rng_1', start: chapter.startPage, end: chapter.endPage }]);
     }
+  };
+
+  const handleSelectMultipleTopics = (topics: TOCTopic[], chapter?: TOCChapter | null) => {
+    const ch = chapter || selectedChapter || (uploadedChapters && uploadedChapters.length > 0 ? uploadedChapters[0] : MADRASAH_CLASS_5_TOC[0]);
+    if (ch) {
+      setSelectedChapter(ch);
+      setCustomChapterTitle(ch.title);
+    }
+    setSelectedTopics(topics);
+    if (topics.length > 0) {
+      setSelectedTopic(topics[0]);
+      setIsEntireChapterSelected(false);
+      const titles = topics.map(t => `${t.topicNumber ? `${t.topicNumber}. ` : ''}${t.title}`).join(', ');
+      setCustomTopicTitle(titles);
+      const excerpts = topics.map((t, i) => `[পাঠ ${i + 1}] অধ্যায়: ${ch?.title || ''} | বিষয়: ${t.title} (পৃষ্ঠা ${t.pageNumber}${t.endPageNumber ? `-${t.endPageNumber}` : ''})\n${t.contentExcerpt || ''}`).join('\n\n');
+      setContent(excerpts);
+      const minPage = Math.min(...topics.map(t => typeof t.pageNumber === 'number' ? t.pageNumber : parseInt(t.pageNumber as any) || 1));
+      const maxPage = Math.max(...topics.map(t => typeof t.endPageNumber === 'number' ? t.endPageNumber : typeof t.pageNumber === 'number' ? t.pageNumber : 10));
+      setPageRanges([{ id: 'ex_rng_1', start: minPage, end: maxPage }]);
+    } else {
+      setSelectedTopic(null);
+      setContent('');
+    }
+  };
+
+  const handleClearAllSelected = () => {
+    setSelectedTopics([]);
+    setSelectedTopic(null);
+    setIsEntireChapterSelected(false);
+    setContent('');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -329,6 +374,7 @@ export const ExerciseGeneratorForm: React.FC<ExerciseGeneratorFormProps> = ({
       topicTitle: finalTopicTitle,
       chapterTitle: finalChapterTitle,
       gradeLevel: selectedGrade,
+      language,
       content: content || `বইয়ের পৃষ্ঠা ${selectedTopic ? selectedTopic.pageNumber : ''} এর বিষয়বস্তু`,
       file: uploadedFile,
       fileData: fileBase64,
@@ -461,12 +507,73 @@ export const ExerciseGeneratorForm: React.FC<ExerciseGeneratorFormProps> = ({
           </div>
         </div>
 
+        {/* Language Selector Bar (LANGUAGE) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/70 dark:bg-emerald-950/40 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800/80 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 rounded-xl">
+              <Globe className="w-4 h-4" />
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+                  অনুশীলনী ও পরীক্ষার ভাষা (LANGUAGE)
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  ৩টি ভাষা
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                বাংলা, ইংরেজি অথবা আরবি ভাষায় সরাসরি অনুশীলনী ও প্রশ্নোত্তর তৈরি হবে
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-2xs self-start sm:self-auto">
+            <button
+              type="button"
+              id="exercise-lang-select-bn"
+              onClick={() => setLanguage('bn')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                language === 'bn'
+                  ? 'bg-emerald-600 text-white shadow-xs font-black'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+              }`}
+            >
+              <span>🇧🇩 বাংলা</span>
+            </button>
+            <button
+              type="button"
+              id="exercise-lang-select-en"
+              onClick={() => setLanguage('en')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                language === 'en'
+                  ? 'bg-emerald-600 text-white shadow-xs font-black'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+              }`}
+            >
+              <span>🇬🇧 English</span>
+            </button>
+            <button
+              type="button"
+              id="exercise-lang-select-ar"
+              onClick={() => setLanguage('ar')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                language === 'ar'
+                  ? 'bg-emerald-600 text-white shadow-xs font-black'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'
+              }`}
+            >
+              <span>🇸🇦 العربية</span>
+            </button>
+          </div>
+        </div>
+
         {/* TAB 1: Table of Contents Interactive Browser */}
         {activeTab === 'toc' && (
           <div className="space-y-4">
             <TOCSelector 
-              chapters={uploadedChapters}
-              bookTitle={uploadedBookTitle}
+              chapters={uploadedChapters || MADRASAH_CLASS_5_TOC}
+              bookTitle={uploadedBookTitle || 'ইসলামিক স্টাডিজ'}
               savedBooks={savedBooks}
               onSelectSavedBook={onSelectSavedBook}
               onUpdateSavedBook={onUpdateSavedBook}
@@ -477,6 +584,8 @@ export const ExerciseGeneratorForm: React.FC<ExerciseGeneratorFormProps> = ({
               onSelectTopic={handleTopicSelect}
               onToggleTopic={handleToggleTopic}
               onSelectFullChapter={handleSelectFullChapter}
+              onSelectMultipleTopics={handleSelectMultipleTopics}
+              onClearAllSelected={handleClearAllSelected}
               onUploadPdf={onUploadPdf}
               isExtractingPdf={isExtractingPdf}
               extractionProgress={extractionProgress}

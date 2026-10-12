@@ -24,6 +24,7 @@ import {
   Globe
 } from 'lucide-react';
 import { TOCChapter, TOCTopic, GradeLevel, SavedBook, BOOK_CATEGORIES, ALL_GRADE_LEVELS } from '../types';
+import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
 import { extractPdfTableOfContents } from '../services/geminiService';
 import { TOCSelector } from './TOCSelector';
 import { BookLibraryCatalog } from './BookLibraryCatalog';
@@ -376,8 +377,8 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
 
       {/* 2-Column TOC Selector Component */}
       <TOCSelector 
-        chapters={chapters}
-        bookTitle={bookTitle}
+        chapters={chapters || MADRASAH_CLASS_5_TOC}
+        bookTitle={bookTitle || 'ইসলামিক স্টাডিজ'}
         selectedChapter={activeChapter}
         selectedTopics={selectedTopicItems.map(item => item.topic)}
         onToggleTopic={handleToggleTopic}
@@ -385,6 +386,19 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
           handleToggleTopic(ch, top);
         }}
         onSelectFullChapter={handleSelectFullChapter}
+        onSelectMultipleTopics={(topics) => {
+          const allChs = chapters || MADRASAH_CLASS_5_TOC;
+          const items: SelectedTopicItem[] = topics.map(t => {
+            const parentCh = allChs.find(c => c.topics?.some(top => top.id === t.id));
+            return {
+              chapterId: parentCh?.id || 'ch_default',
+              chapterTitle: parentCh?.title || '',
+              topic: t
+            };
+          });
+          setSelectedTopicItems(items);
+        }}
+        onClearAllSelected={() => setSelectedTopicItems([])}
         onUploadPdf={handlePdfUpload}
         isExtractingPdf={isExtracting}
         extractionProgress={extractionProgress}

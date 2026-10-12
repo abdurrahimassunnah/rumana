@@ -304,7 +304,7 @@ export const MADRASAH_CLASS_5_TOC: TOCChapter[] = [
   },
   {
     id: 'masael_ahkam',
-    title: 'ইসলামী বিধি-বিধান (মাসায়েল ও আহকাম)',
+    title: 'ইসলামী বিধি-বিধান (মাসায়েল ও আহকাম / মাসায়েল)',
     arabicTitle: 'الأحكام الفقهية والمسائل (العبادات والمعاملات)',
     startPage: 81,
     endPage: 119,

@@ -191,6 +191,7 @@ export interface ExerciseRequest {
     match?: number;
   };
   difficulty: 'easy' | 'medium' | 'hard';
+  language?: 'bn' | 'en' | 'ar';
   additionalInstructions?: string;
 }
 
