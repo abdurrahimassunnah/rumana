@@ -1,4 +1,6 @@
 export enum GradeLevel {
+  Play = 'প্লে / নার্সারি',
+  KG = 'কেজি (KG)',
   Grade1 = 'প্রথম শ্রেণি',
   Grade2 = 'দ্বিতীয় শ্রেণি',
   Grade3 = 'তৃতীয় শ্রেণি',
@@ -19,6 +21,30 @@ export interface GradeAgeIntellectProfile {
 }
 
 export const GRADE_AGE_INTELLECT_MAP: Record<string, GradeAgeIntellectProfile> = {
+  [GradeLevel.Play]: {
+    grade: GradeLevel.Play,
+    ageRange: '৩ - ৫ বছর',
+    ageRangeEn: '3 - 5 Years',
+    intellectTitle: 'সংবেদনশীল ও প্রারম্ভিক ইন্দ্রিয়ভিত্তিক শিখন (Sensory & Play-Based Early Childhood)',
+    cognitiveCharacteristics: 'স্পর্শ, রং, ছবি, ছড়া, সুর ও খেলার মাধ্যমে চেনা। মনোযোগের পরিধি অতি স্বল্প। মুখস্থকরণ সম্পূর্ণ খেলা ও পুনরাবৃত্তিমূলক ছড়া নির্ভর।',
+    questionFormulationRules: [
+      'প্রশ্ন হবে ছবি বা বস্তুর নাম বলা সংক্রান্ত।',
+      'মৌখিক ও অঙ্গভঙ্গি ভিত্তিক আনন্দদায়ক ছোট ছোট প্রশ্ন।',
+      'কোনো লিখিত বা জটিল পরীক্ষা নয়, মুখে মুখে বলা ও ছবি শনাক্তকরণ।'
+    ]
+  },
+  [GradeLevel.KG]: {
+    grade: GradeLevel.KG,
+    ageRange: '৪ - ৬ বছর',
+    ageRangeEn: '4 - 6 Years',
+    intellectTitle: 'মৌলিক ধ্বনি ও দৃশ্যমান প্রতীক চেনা (Phonics & Visual Symbol Identification)',
+    cognitiveCharacteristics: 'হরফ ও শব্দের ছবি মেলানো, সহজ ছড়া গাওয়া, শিক্ষকের অঙ্গভঙ্গি অনুকরণ ও বাস্তব বস্তুর নাম মুখে বলা।',
+    questionFormulationRules: [
+      'সহজ ছবি দেখে হরফ ও শব্দের সাথে রেখা টানা বা টিক চিহ্ন।',
+      'মুখে মুখে মাখরাজ ও শব্দ উচ্চারণ ড্রিল।',
+      '১-২ শব্দের সহজতম মৌখিক প্রশ্ন।'
+    ]
+  },
   [GradeLevel.Grade1]: {
     grade: GradeLevel.Grade1,
     ageRange: '৫ - ৭ বছর',

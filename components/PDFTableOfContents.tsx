@@ -102,6 +102,7 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
   const [isExtracting, setIsExtracting] = useState<boolean>(externalIsExtracting);
   const [extractionProgress, setExtractionProgress] = useState<string>(externalProgress);
   const [extractError, setExtractError] = useState<string | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
 
   // Sync with external chapters
   React.useEffect(() => {
@@ -258,9 +259,11 @@ export const PDFTableOfContents: React.FC<PDFTableOfContentsProps> = ({
 
   const handleAction = (type: 'questions' | 'lesson_plan' | 'detailed_plan') => {
     if (selectedTopicItems.length === 0) {
-      alert("অনুগ্রহ করে অন্তত একটি পাঠ বা অধ্যায় নির্বাচন করুন!");
+      setSelectionError("অনুগ্রহ করে অন্তত একটি পাঠ বা অধ্যায় নির্বাচন করুন!");
+      setTimeout(() => setSelectionError(null), 4000);
       return;
     }
+    setSelectionError(null);
     const content = buildExtractedContent();
     if (type === 'questions') {
       onGenerateQuestions(selectedTopicItems, content, uploadedPdf);

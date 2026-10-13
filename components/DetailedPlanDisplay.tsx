@@ -21,6 +21,9 @@ import {
   Type
 } from 'lucide-react';
 import { DetailedLessonPlan, LessonProcedureStep } from '../types';
+import { MadrasahLogo } from './MadrasahLogo';
+import { GradeAgeBanner } from './GradeAgeBanner';
+import { SmartActivitySuite } from './SmartActivitySuite';
 
 interface DetailedPlanDisplayProps {
   plan: DetailedLessonPlan;
@@ -182,7 +185,14 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
   const [copied, setCopied] = useState(false);
   const [activeLangOverride, setActiveLangOverride] = useState<'auto' | 'ar' | 'bn' | 'en'>('auto');
   const [fontMode, setFontMode] = useState<'auto' | 'amiri' | 'kalpurush' | 'times'>('auto');
+  const [showActivitySuite, setShowActivitySuite] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const printableRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   // Detect whether plan is Arabic, Bengali, or English
   const detectLanguage = (p: DetailedLessonPlan): 'ar' | 'bn' | 'en' => {
@@ -549,6 +559,14 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300 max-w-5xl mx-auto">
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-teal-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-bottom-5 duration-300 border border-teal-700">
+          <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Action Control Bar */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div className="flex items-center gap-3">
@@ -681,6 +699,21 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
             <span>{isEditing ? (isAr ? 'حفظ التعديل' : 'সম্পাদনা সম্পন্ন') : (isAr ? '✏️ تعديل وتخصيص' : '✏️ কাস্টমাইজ করুন')}</span>
           </button>
 
+          {/* Smart Activity Suite Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setShowActivitySuite(!showActivitySuite)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              showActivitySuite
+                ? 'bg-amber-500 text-white shadow-xs'
+                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 hover:bg-amber-100'
+            }`}
+            title="বাচ্চার বয়স ও টপিক অনুযায়ী আকর্ষণীয় খেলা ও যাচাইমূলক অ্যাক্টিভিটি যোগ করুন"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>{showActivitySuite ? 'লাইব্রেরি বন্ধ' : '✨ স্মার্ট অ্যাক্টিভিটি'}</span>
+          </button>
+
           {/* Download Word Document */}
           <button
             onClick={handleDownloadDoc}
@@ -729,6 +762,33 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
         </div>
       </div>
 
+      {/* Child Age & Intellect-Tailored Concept Banner */}
+      <GradeAgeBanner
+        gradeLevel={plan.className}
+        subject={plan.subject}
+        compact={false}
+        className="my-3 print:hidden"
+      />
+
+      {/* Smart Pedagogical Activity Suite (when toggled) */}
+      {showActivitySuite && (
+        <div className="my-4 print:hidden animate-in fade-in duration-300">
+          <SmartActivitySuite
+            gradeLevel={plan.className}
+            topicTitle={plan.topic}
+            subject={plan.subject}
+            language={effectiveLang}
+            onAddActivity={(newStep) => {
+              setPlan(prev => ({
+                ...prev,
+                procedures: [...prev.procedures, newStep]
+              }));
+              showToast(isAr ? 'تمت إضافة النشاط بنجاح إلى خطة الدرس!' : 'অ্যাক্টিভিটিটি সফলভাবে লেসন প্ল্যানে যুক্ত হয়েছে!');
+            }}
+          />
+        </div>
+      )}
+
       {isEditing && (
         <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl p-3 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between gap-2 print:hidden">
           <span>
@@ -756,11 +816,11 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
       >
         {/* Top Logo & Madrasah Crest on Left (Sample Exact Match) */}
         <div className={`flex flex-col ${isAr ? 'items-start' : 'items-start'} pb-2`}>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-11 h-11 rounded-lg border-2 border-teal-700 bg-white p-1 flex flex-col items-center justify-center text-teal-800 shadow-2xs">
-              <span className="text-[9px] font-black leading-none text-teal-900">السنة</span>
-              <span className="text-[6px] tracking-tight leading-tight text-teal-700">مادراسَاتُس</span>
-              <span className="text-[6px] font-bold leading-none text-teal-800">মাদরাসাতুস সুন্নাহ</span>
+          <div className="flex items-center gap-3 mb-1">
+            <MadrasahLogo size="sm" showText={false} variant="crest" allowUpload={true} />
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-teal-800 tracking-tight">مادراسَاتُس سُنَّة</span>
+              <span className="text-[10px] font-bold text-teal-900 tracking-tight">মাদরাসাতুস সুন্নাহ</span>
             </div>
           </div>
           

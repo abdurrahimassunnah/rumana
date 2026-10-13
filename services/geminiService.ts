@@ -1027,6 +1027,32 @@ export const generateDetailedPlanClient = async (
 
     ${standaloneRule}
 
+    ========================================================================================================
+    **বুদ্ধিমত্তা সম্পন্ন শিশুতোষ অ্যাক্টিভিটি ও শিখন যাচাই নীতি (INTELLIGENT AGE & TOPIC-ADAPTIVE ACTIVITIES):**
+    ========================================================================================================
+    - অ্যাপের কৃত্রিম বুদ্ধিমত্তা নিজে থেকে বিষয় (${effectiveSubject}), টপিক (${effectiveTopic}) এবং শিশুর শ্রেণি ও বয়স (${effectiveClass}) বিশ্লেষণ করে সবচেয়ে উপযুক্ত, বৈচিত্র্যময় ও সুন্দর কার্যক্রম (Activities) নির্বাচন করবে।
+    - প্রতিটি ধাপে কমপক্ষে ২-৩টি আকর্ষণীয় ও আধুনিক শিক্ষাদান পদ্ধতি অন্তর্ভুক্ত করতে হবে:
+      ১. **মাখরাজ / তাজবীদ / উচ্চারণ পাঠ হলে:**
+         • 'মাখরাজ আয়না ও বাতাস পরীক্ষা' (Makhraj Mirror & Air Flow Check)
+         • 'নাকের বাঁশিতে গুন্নাহ কম্পন অনুভব' (Gunnag Vibration Test)
+         • 'সাউন্ড ও ইকো ড্রিল' (Sound & Echo Drill)
+         • 'হরফ বাছাই ও রঙিন কার্ড ঝুড়ি খেলা' (Letter Sorting Activity)
+      ২. **আরবি / ইংরেজি শব্দভাণ্ডার বা মুখস্থকরণ পাঠ হলে:**
+         • 'রহস্যের থলে / ম্যাজিক ব্যাগ' (Mystery Box / Magic Bag - বাস্তব বস্তু স্পর্শ করে নাম বলা)
+         • 'টিপিআর অঙ্গভঙ্গি ও মূকাভিনয়' (Action Miming & Total Physical Response)
+         • 'বোর্ড ফ্ল্যাশকার্ড দ্রুত স্পর্শ দৌড়' (Flyswatter / Slap the Card Board Race)
+         • 'কোন বস্তুটি হারিয়ে গেল?' (What's Missing? Visual Memory Game)
+      ৩. **কুরআন তিলাওয়াত / হিফজ পাঠ হলে:**
+         • 'তিলাওয়াত রিলে ট্রেন' (Sequential Ayah Recitation Relay)
+         • 'আয়াত পাজল জোড়া লাগানো' (Ayah Sequence Puzzle)
+      ৪. **বাচ্চার শেখা নিশ্চিত যাচাই ও ফিডব্যাক (Formative Assessment & Checking Understanding):**
+         • 'এক্সিট টিকিট' (Exit Ticket / Exit Question - ক্লাস শেষের আগে প্রতিটি বাচ্চার শেখা যাচাই)
+         • 'ট্রাফিক লাইট বা থাম্বস আপ-ডাউন' (Traffic Light Comprehension Check)
+         • 'ফাস্ট ফিঙ্গার কুইজ' (Fast Finger Drill)
+    - শিশুদের বয়স ও বিবেক-বুদ্ধির স্তর অনুযায়ী পদ্ধতি সহজ বা উন্নত হবে।
+    - শিক্ষক কার্যক্রমে (teacherDoes) এবং শিক্ষার্থীদের কার্যক্রমে (childrenDo) স্পষ্ট, প্রাণবন্ত ও বাস্তবসম্মত নির্দেশনা লিখুন।
+    ========================================================================================================
+
     **Input Details:**
     • Class: ${effectiveClass}
     • Subject: ${effectiveSubject}
@@ -1056,52 +1082,66 @@ export const generateDetailedPlanClient = async (
       ],
       "procedures": [
         {
-          "stageAndTime": "${effectiveLang === 'bn' ? 'ওয়ার্ম-আপ ও প্রস্তুতি\\n৩-৫ মিনিট' : effectiveLang === 'ar' ? 'التهيئة والتمهيد\\n٣-٥ دقائق' : 'Lead in / warm-up\\n3-5 minutes'}",
+          "stageAndTime": "${effectiveLang === 'bn' ? '১. প্রারম্ভিক প্রস্তুতি ও সংবেদনশীল আকর্ষণ (Lead in & Sensory Hook)\\n৫ মিনিট' : effectiveLang === 'ar' ? '١. التهيئة وجذب الانتباه بالحواس\\n٥ دقائق' : '1. Lead in & Sensory Hook\\n5 mins'}",
           "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "procedurePoints": [
             "Teacher action 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
-            "Teacher action 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
+            "Teacher action 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+            "Teacher action 3"
           ],
           "childrenDo": "Student action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "teacherDoes": "Teacher action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "intPattern": "W/C\\nC / O",
-          "aids": "SB\\nC / O"
+          "aids": "Magic Bag\\nRealia"
         },
         {
-          "stageAndTime": "${effectiveLang === 'bn' ? 'মূল পাঠ ও উপস্থাপন\\n১৫-২০ মিনিট' : effectiveLang === 'ar' ? 'النشاط الرئيسي والشرح\\n١٥-٢٠ دقيقة' : 'Main activity\\n15-20 minutes'}",
+          "stageAndTime": "${effectiveLang === 'bn' ? '২. মূর্ত উপস্থাপন ও শারীরিক অঙ্গভঙ্গি ড্রিল (Direct Modeling & TPR)\\n১২ মিনিট' : effectiveLang === 'ar' ? '٢. النمذجة المباشرة والحركة الجسدية (TPR)\\n١٢ دقيقة' : '2. Direct Modeling & Kinesthetic TPR\\n12 mins'}",
           "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "procedurePoints": [
             "Step 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
-            "Step 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
+            "Step 2",
+            "Step 3"
+          ],
+          "childrenDo": "Student action",
+          "teacherDoes": "Teacher action",
+          "intPattern": "W/C\\nPW",
+          "aids": "Realia\\nFlashcards"
+        },
+        {
+          "stageAndTime": "${effectiveLang === 'bn' ? '৩. সক্রিয় খেলা ও দ্রুত স্পর্শ প্রতিযোগিতা (Kinesthetic Practice & Board Race)\\n১০ মিনিট' : effectiveLang === 'ar' ? '٣. الألعاب التنافسية ولمس البطاقات السريعة\\n١٠ دقائق' : '3. Active Kinesthetic Practice & Board Relay\\n10 mins'}",
+          "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+          "procedurePoints": [
+            "Practice step 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+            "Practice step 2"
+          ],
+          "childrenDo": "Student action",
+          "teacherDoes": "Teacher action",
+          "intPattern": "GW\\nPW",
+          "aids": "Board\\nFlashcards"
+        },
+        {
+          "stageAndTime": "${effectiveLang === 'bn' ? '৪. স্মৃতিশক্তি ও ভিজ্যুয়াল মেমোরি পরীক্ষা (Cognitive Memory Recall)\\n৮ মিনিট' : effectiveLang === 'ar' ? '٤. تدريب الذاكرة البصرية واكتشاف المفقود\\n٨ دقائق' : '4. Cognitive Memory Recall\\n8 mins'}",
+          "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+          "procedurePoints": [
+            "Memory step 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+            "Memory step 2"
           ],
           "childrenDo": "Student action",
           "teacherDoes": "Teacher action",
           "intPattern": "W/C\\nS",
-          "aids": "Flashcards\\n& toys"
+          "aids": "Realia\\nCover Sheet"
         },
         {
-          "stageAndTime": "${effectiveLang === 'bn' ? 'অনুশীলন ও খেলাধুলা\\n১০ মিনিট' : effectiveLang === 'ar' ? 'التطبيق والأنشطة التفاعلية\\n١٠ دقائق' : 'Practice / play\\n10 minutes'}",
+          "stageAndTime": "${effectiveLang === 'bn' ? '৫. শিখন নিশ্চিতকরণ ও এক্সিট টিকিট মূল্যায়ন (Formative Assessment & Exit Check)\\n৫ মিনিট' : effectiveLang === 'ar' ? '٥. التأكد من الفهم وتذكرة الخروج ونجمة التفوق\\n٥ دقائق' : '5. Formative Assessment & Exit Ticket\\n5 mins'}",
           "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
           "procedurePoints": [
-            "Practice step 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
-            "Practice step 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
+            "Assessment point 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+            "Assessment point 2"
           ],
           "childrenDo": "Student action",
           "teacherDoes": "Teacher action",
-          "intPattern": "GW\\nS",
-          "aids": "Objects"
-        },
-        {
-          "stageAndTime": "${effectiveLang === 'bn' ? 'পর্যালোচনা ও মূল্যায়ন\\n৫ মিনিট' : effectiveLang === 'ar' ? 'المراجعة والتقييم الختامي\\n٥ دقائق' : 'Review\\n5 minutes'}",
-          "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
-          "procedurePoints": [
-            "Review point 1 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
-            "Review point 2 in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}"
-          ],
-          "childrenDo": "Student action",
-          "teacherDoes": "Teacher action",
-          "intPattern": "W/C",
-          "aids": "SB"
+          "intPattern": "S\\nW/C",
+          "aids": "Exit Cards\\nStar Stickers"
         }
       ],
       "symbolKeys": {

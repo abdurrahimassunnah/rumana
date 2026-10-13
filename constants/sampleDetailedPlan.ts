@@ -1,79 +1,106 @@
 import { DetailedLessonPlan } from '../types';
 
+/**
+ * Formal Observation Master Lesson Plan
+ * Designed for Madrasatus Sunnah Formal Class Observation
+ * Topic: Arabic Vocabulary & Sensory Realia: ورد (Rose), انبج (Mango), هدية (Gift), يد (Hand)
+ * Pedagogical Structure: Sensory Hook -> Kinesthetic TPR -> Competitive Board Touch -> Memory Recall -> Exit Ticket
+ */
 export const EXACT_SAMPLE_DETAILED_PLAN: DetailedLessonPlan = {
-  className: "KG",
-  topic: "Colors (Red, Blue, Yellow)",
-  subject: "English (Literacy)",
-  teacherName: "Kabir Ustadh",
-  duration: "30 mins",
-  materials: "Color flashcards, red/blue/yellow toys, crayons, worksheet.",
-  learningObjective: "By the end of the lesson, children will be able to identify red, blue, and yellow objects by pointing and naming them.",
+  className: "কেজি / ১ম শ্রেণি (KG / Grade 1 • বয়স: ৫ - ৬ বছর)",
+  topic: "আরবি শব্দভাণ্ডার ও বাস্তব বস্তু চেনা: ورد (গোলাপ), انبج (আম), هدية (উপহার), يد (হাত)",
+  subject: "আরবি ভাষা ও ইসলামিক শিষ্টাচার (Arabic Literacy & Manners)",
+  teacherName: "উস্তাদ শরীফ (Sharif Ustadh)",
+  duration: "৪০ মিনিট (40 mins)",
+  materials: "আসল তাজা সুবাসিত লাল গোলাপ ফুল (ورد), রসালো পাকা মিষ্টি আম (انبج), ফিতা দিয়ে মোড়ানো সুন্দর উপহারের বাক্স (هدية), আকর্ষণীয় ম্যাজিক থলে (Mystery Bag), বড় রঙিন ছবির ফ্ল্যাশকার্ড, হোয়াইটবোর্ড ও মার্কার, প্রতিটি শিশুর জন্য এক্সিট টিকিট ও স্মাইলি গোল্ডেন স্টার স্টিকার।",
+  learningObjective: "পাঠ শেষে শিক্ষার্থীরা: ১. বাস্তব বস্তু ও ছবি দেখে 'ورد' (গোলাপ), 'انبج' (আম), 'هدية' (উপহার) ও 'يد' (হাত)—শব্দগুলো স্বতঃস্ফূর্তভাবে বিশুদ্ধ মাখরাজে বলতে পারবে। ২. বিভিন্ন বস্তুর মধ্য থেকে নির্দেশিত আরবি শব্দটি শুনে সঠিক বস্তু বা কার্ডটি আঙুল দিয়ে শনাক্ত করতে পারবে। ৩. আনন্দদায়ক খেলা ও শারীরিক অঙ্গভঙ্গির (TPR) মাধ্যমে সহপাঠীদের সাথে শব্দগুলোর অর্থ ও প্রয়োগ প্রকাশ করতে পারবে।",
   successCriteria: [
-    "1. Point to a yellow/red/blue object when asked",
-    "2. Say the color name (red / blue / yellow) while pointing",
-    "3. Match objects to the correct color group"
+    "১. আমি আসল ফুল বা ছবি দেখে স্পষ্ট উচ্চারণে 'ورد' (গোলাপ) বলতে পারি।",
+    "২. আমি ম্যাজিক ব্যাগে হাত দিয়ে না দেখে স্পর্শ করে 'هدية' (উপহার) চিনে নাম বলতে পারি।",
+    "৩. আমি বন্ধুদের সাথে দ্রুত কার্ড স্পর্শ প্রতিযোগিতায় সঠিক শব্দে হাত দিতে পারি এবং এক্সিট টিকেটে স্টার অর্জন করতে পারি।"
   ],
   procedures: [
     {
-      stageAndTime: "Lead in / warm-up\n3-5 minutes",
-      activityTitle: "Hello Song + Color Hunt",
+      stageAndTime: "১. প্রারম্ভিক প্রস্তুতি ও সংবেদনশীল আকর্ষণ (Lead in & Sensory Hook)\n৫ মিনিট",
+      activityTitle: "কার্যক্রম: রহস্যের থলে (Magic Bag) ও গোলাপের সুবাস পরীক্ষা",
       procedurePoints: [
-        "Teacher sings the hello song",
-        "Children look around the classroom and point to one red, one yellow and one blue object"
+        "উস্তাদ হাসিমুখে ক্লাসে প্রবেশ করে মোলায়েম কণ্ঠে সালাম বিনিময় করবেন এবং শিশুদের মনোযোগ আকর্ষণ করতে একটি সুদৃশ্য মখমলের ম্যাজিক ব্যাগ টেবিলের উপর রাখবেন।",
+        "একজন শিক্ষার্থীকে সামনে ডেকে এনে চোখ বন্ধ করতে বলবেন এবং ব্যাগের কাছে এনে গোলাপের মিষ্টি ঘ্রাণ নিতে বলবেন।",
+        "শিশুকে জিজ্ঞাসা করবেন: 'তোমার কী মনে হচ্ছে ভেতরে কী আছে?' শিশু গন্ধ শুঁকে আনন্দভরে বলবে 'ফুল!'।"
       ],
-      childrenDo: "Point and name",
-      teacherDoes: "Models and encourages.",
+      childrenDo: "শিশুরা গভীর কৌতূহলে গন্ধ শোঁকে, আনন্দিত হয়ে অনুমান প্রকাশ করে এবং পুরো শ্রেণি রহস্য উন্মোচনে সজাগ দৃষ্টি রাখে।",
+      teacherDoes: "রহস্যময় ও আনন্দদায়ক পরিবেশ তৈরি করেন, শিশুর ইন্দ্রিয় সচেতনতা জাগিয়ে তোলেন এবং স্নেহপূর্ণ প্রশংসা করেন।",
       intPattern: "W/C\nC / O",
-      aids: "SB\nC / O"
+      aids: "Magic Bag\nRealia (ورد)"
     },
     {
-      stageAndTime: "Main activity\n15-20 minutes",
-      activityTitle: "Flashcard & Toy Show",
+      stageAndTime: "২. মূর্ত উপস্থাপন ও শারীরিক অঙ্গভঙ্গি ড্রিল (Direct Modeling & TPR)\n১২ মিনিট",
+      activityTitle: "কার্যক্রম: বাস্তব বস্তু প্রদর্শন, ধ্বনি-প্রতিধ্বনি ও শারীরিক অঙ্গভঙ্গি ড্রিল (TPR Mime & Echo Wave)",
       procedurePoints: [
-        "Teacher shows one color at a time",
-        "Children repeat and touch matching toys"
+        "উস্তাদ থলে থেকে তাজা গোলাপ বের করে উঁচিয়ে ধরে সুরেলা কণ্ঠে ৩ বার বলবেন: 'وَ-رْ-دٌ — ورد!' এবং দুই হাত দিয়ে ফুল ফোটার সুন্দর ভঙ্গি দেখাবেন।",
+        "সবাই শিক্ষকের অনুকরণে ফুল ফোটার ভঙ্গি করে প্রতিধ্বনির মতো সুর করে উচ্চারণ করবে 'ورد' (গোলাপ)।",
+        "এরপর হলুদ পাকা আম বের করে খোসা ছাড়িয়ে খাওয়ার অভিনয় করে বলবেন 'أَنْـبَـجٌ' এবং ফিতা বাঁধা সুন্দর গিফট বক্স বের করে উপহার দেওয়ার ভঙ্গি করে বলবেন 'هَدِيَّـةٌ'।",
+        "উস্তাদ নিজের হাত তুলে শিশুদের করমর্দন করে হাত স্পর্শ করাবেন এবং বলবেন 'يَـدٌ'।"
       ],
-      childrenDo: "Say color names, touch objects",
-      teacherDoes: "Shows, asks simple questions",
+      childrenDo: "শিক্ষকের সাথে সাথে হাত দিয়ে ফুল ফোটার, আম খাওয়ার ও উপহার দেওয়ার অভিনয় করে সুরে সুরে শব্দগুলো উচ্চারণ করে।",
+      teacherDoes: "বাস্তব বস্তু প্রদর্শন করেন, শারীরিক মুদ্রা (TPR) প্রদর্শন করেন এবং প্রতিটি বাচ্চার ঠোঁট ও মাখরাজ গভীর মনোযোগে পর্যবেক্ষণ করেন।",
+      intPattern: "W/C\nPW",
+      aids: "Realia\nFlashcards"
+    },
+    {
+      stageAndTime: "৩. সক্রিয় খেলা ও দ্রুত স্পর্শ প্রতিযোগিতা (Kinesthetic Practice & Board Race)\n১০ মিনিট",
+      activityTitle: "কার্যক্রম: বোর্ড ফ্ল্যাশকার্ড দ্রুত স্পর্শ প্রতিযোগিতা (Flyswatter Fast-Touch Board Relay)",
+      procedurePoints: [
+        "উস্তাদ ব্ল্যাকবোর্ডে বিভিন্ন উচ্চতায় ورد, انبج, هدية, يد—এর ছবি ও বড় হরফের কার্ড চুম্বক দিয়ে লাগিয়ে দেবেন।",
+        "ক্লাসকে দুটি দলে (দল-আলিফ ও দল-বা) ভাগ করে প্রতি দল থেকে ১ জন শিশুকে স্টার্টিং লাইনে দাঁড় করিয়ে প্রস্তুত রাখবেন।",
+        "উস্তাদ উচ্চৈঃস্বরে ডাকবেন: 'انبج!'—ডাক শোনামাত্রই দুই প্রতিযোগী দৌড়ে গিয়ে যে সবার আগে আমের ছবিতে স্পর্শ করবে সে দলের জন্য ১ পয়েন্ট পাবে।"
+      ],
+      childrenDo: "তীক্ষ্ণ মনোযোগে কান পেতে শব্দ শোনে, ক্ষিপ্র গতিতে দৌড়ে সঠিক কার্ড স্পর্শ করে এবং দলের সহপাঠীরা উল্লাস প্রকাশ করে।",
+      teacherDoes: "ন্যায্যভাবে খেলার গতি নিয়ন্ত্রণ করেন, পয়েন্ট বোর্ডে লেখেন এবং প্রতি রাউন্ড শেষে বিজয়ী ও অংশগ্রহণকারীকে সাবাশ জানান।",
+      intPattern: "GW\nPW",
+      aids: "Board\nFlashcards"
+    },
+    {
+      stageAndTime: "৪. স্মৃতিশক্তি ও ভিজ্যুয়াল মেমোরি পরীক্ষা (Cognitive Memory Recall)\n৮ মিনিট",
+      activityTitle: "কার্যক্রম: কোন বস্তুটি হারিয়ে গেল? (What's Missing? Sensory Recall Challenge)",
+      procedurePoints: [
+        "উস্তাদ টেবিলের ওপর ৪টি বাস্তব বস্তু (গোলাপ, আম, গিফট বক্স ও খেলনা হাত) সাজিয়ে রাখবেন।",
+        "শিশুদের বলবেন: 'أغمضوا أعينكم' (সবাই চোখ বন্ধ করো)। এরপর একটি বস্তু কাপড়ের নিচে লুকিয়ে ফেলবেন।",
+        "শিশুদের চোখ খুলতে বলবেন: 'افتحوا أعينكم'। যে শিশু সবার আগে বলতে পারবে কোন জিনিসটি টেবিল থেকে গায়েব হয়েছে, সে দাঁড়িয়ে সেই শব্দটির আরবি নাম বলবে।"
+      ],
+      childrenDo: "সততার সাথে চোখ বন্ধ করে, চোখ খুলে দ্রুত টেবিল স্ক্যান করে হারিয়ে যাওয়া বস্তুর নাম আরবিতে আনন্দভরে বলে।",
+      teacherDoes: "কৌতুকপূর্ণ ভঙ্গিতে বস্তু লুকান, দ্রুত উত্তর দেওয়া শিশুর মেধার স্বীকৃতি দেন এবং শব্দটির উচ্চারণ আরেকবার ঝালিয়ে নেন।",
       intPattern: "W/C\nS",
-      aids: "Flashcards\n& toys"
+      aids: "Realia\nCover Sheet"
     },
     {
-      stageAndTime: "Practice / play\n10 minutes",
-      activityTitle: "Color Stations",
+      stageAndTime: "৫. শিখন নিশ্চিতকরণ ও এক্সিট টিকিট মূল্যায়ন (Formative Assessment & Exit Check)\n৫ মিনিট",
+      activityTitle: "কার্যক্রম: এক্সিট টিকিট ড্রিল ও স্মাইলি গোল্ডেন স্টার প্রদান (Exit Ticket & Star Award)",
       procedurePoints: [
-        "Children move to color corners (Red / Blue / Yellow)",
-        "Pick up matching objects"
+        "উস্তাদ প্রতিটি শিক্ষার্থীর কাছে গিয়ে ১টি করে কার্ড দেখাবেন বা প্রশ্ন করবেন: 'ما هذا؟' (এটি কী?)।",
+        "শিক্ষার্থী যদি দ্রুত ও সঠিকভাবে বলে 'ورد' বা 'هدية', তবে উস্তাদ তার কপালে বা খাতায় একটি উজ্জ্বল গোল্ডেন স্টার স্টিকার লাগিয়ে দেবেন।",
+        "যে শিশু একটু থমকে যাবে, উস্তাদ তাকে স্নেহভরে ক্লু দিয়ে সঠিকটা বলিয়ে নিয়ে তারপর স্টার দেবেন যাতে কোনো শিশুই ব্যর্থ না হয়।",
+        "সকল শিক্ষার্থী আনন্দচিত্তে 'মাআস সালামাহ' বলে ক্লাস সমাপ্ত করবে।"
       ],
-      childrenDo: "Move, sort, talk",
-      teacherDoes: "Monitors and praises",
-      intPattern: "GW\nS",
-      aids: "Objects"
-    },
-    {
-      stageAndTime: "Review\n5 minutes",
-      activityTitle: "Color Song + Exit Check",
-      procedurePoints: [
-        "Sing a color song with actions",
-        "Each child points to one color before leaving"
-      ],
-      childrenDo: "Sing and show understanding",
-      teacherDoes: "Checks learning informally",
-      intPattern: "W/C",
-      aids: "SB"
+      childrenDo: "প্রত্যেক শিশু ব্যক্তিগতভাবে উস্তাদকে শব্দের সঠিক নাম শুনিয়ে গর্বের সাথে গোল্ডেন স্টার স্টিকার গ্রহণ করে।",
+      teacherDoes: "প্রত্যেক শিশুর শিখন নিশ্চিত করেন, শিখন ঘাটতি ডায়েরিতে টুকে রাখেন এবং দোয়া ও স্নেহের সাথে আনুষ্ঠানিক পর্যবেক্ষণ সম্পন্ন করেন।",
+      intPattern: "S\nW/C",
+      aids: "Exit Cards\nStar Stickers"
     }
   ],
   symbolKeys: {
     intKeys: [
-      { symbol: "W/C", meaning: "whole class" },
-      { symbol: "PW", meaning: "Pair work" },
-      { symbol: "GW", meaning: "Group work" },
-      { symbol: "S", meaning: "students work individually" }
+      { symbol: "W/C", meaning: "পুরো শ্রেণি (Whole Class — সমবেত নির্দেশনা ও আকর্ষণ)" },
+      { symbol: "PW", meaning: "জোড়ায় কাজ (Pair Work — সহপাঠীদের সাথে মুখে মুখে বলা)" },
+      { symbol: "GW", meaning: "দলগত প্রতিযোগিতা (Group Work — দল-আলিফ ও দল-বা)" },
+      { symbol: "S", meaning: "একক যাচাই (Individual Student — এক্সিট টিকিট মূল্যায়ন)" }
     ],
     aidsKeys: [
-      { symbol: "SB", meaning: "Smartboard" },
-      { symbol: "TB", meaning: "Textbook" },
-      { symbol: "W/S", meaning: "Worksheet" }
+      { symbol: "Realia", meaning: "বাস্তব বস্তু (আসল ফুল, আম, উপহারের বাক্স)" },
+      { symbol: "Magic Bag", meaning: "রহস্যের থলে (স্পর্শ ও সুবাস ড্রিল)" },
+      { symbol: "Board", meaning: "ব্ল্যাকবোর্ড / চৌম্বকীয় বোর্ড" },
+      { symbol: "Flashcards", meaning: "রঙিন ছবির ফ্ল্যাশকার্ড" },
+      { symbol: "Star Stickers", meaning: "এক্সিট টিকিট ও গোল্ডেন স্টার স্টিকার" }
     ]
   }
 };

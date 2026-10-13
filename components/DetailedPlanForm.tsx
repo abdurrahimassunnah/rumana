@@ -14,7 +14,13 @@ import {
   Calendar,
   Hash,
   Layers,
-  Globe
+  Globe,
+  Brain,
+  Activity,
+  CheckCircle2,
+  Lightbulb,
+  Trophy,
+  Target
 } from 'lucide-react';
 import { DetailedPlanRequest, TOCChapter, TOCTopic, SavedBook } from '../types';
 import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
@@ -96,6 +102,21 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
   const [totalDuration, setTotalDuration] = useState<number>(30);
   const [planDays, setPlanDays] = useState<number>(1);
   const [additionalInstructions, setAdditionalInstructions] = useState('');
+  
+  // Intelligent Pedagogical Activities selection (auto-selected by default)
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([
+    'realia_bag',
+    'tpr_mime',
+    'flyswatter_relay',
+    'whats_missing',
+    'exit_ticket'
+  ]);
+
+  const toggleActivity = (id: string) => {
+    setSelectedActivities(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
   
   // File Upload & Library state
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -308,6 +329,21 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       end: r.end
     }));
 
+    const activityDescriptions = selectedActivities.map(id => {
+      if (id === 'realia_bag') return "১. সংবেদনশীল আকর্ষণ: রহস্যের থলে (Mystery Bag) ও বাস্তব বস্তু (Realia) স্পর্শ/ঘ্রাণ পরীক্ষা";
+      if (id === 'tpr_mime') return "২. মূর্ত উপস্থাপন: শারীরিক অঙ্গভঙ্গি ড্রিল (TPR Mime & Echo Wave)";
+      if (id === 'flyswatter_relay') return "৩. সক্রিয় খেলা: বোর্ড ফ্ল্যাশকার্ড দ্রুত স্পর্শ প্রতিযোগিতা (Flyswatter Fast-Touch Board Relay)";
+      if (id === 'whats_missing') return "৪. স্মৃতি পরীক্ষা: কোন বস্তুটি হারিয়ে গেল? (What's Missing? Sensory Recall Challenge)";
+      if (id === 'exit_ticket') return "৫. শিখন নিশ্চিতকরণ: এক্সিট টিকিট মূল্যায়ন ও স্মাইলি গোল্ডেন স্টার প্রদান (Exit Ticket & Star Award)";
+      if (id === 'makhraj_drill') return "মাখরাজ ও উচ্চারণ: ছোট আয়না ও বাতাস পরীক্ষা (Makhraj Mirror & Air Flow Check)";
+      return id;
+    }).join(" | ");
+
+    const mergedInstructions = [
+      additionalInstructions.trim(),
+      activityDescriptions ? `[বাধ্যতামূলক পেডাগোজিক্যাল শিশুতোষ অ্যাক্টিভিটিসমূহ: ${activityDescriptions}]` : ''
+    ].filter(Boolean).join("\n");
+
     const request: DetailedPlanRequest = {
       topicTitle,
       chapterTitle,
@@ -323,7 +359,7 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       startPage: activeTab === 'custom' ? undefined : firstRange.start,
       endPage: activeTab === 'custom' ? undefined : firstRange.end,
       pageRanges: cleanRanges,
-      additionalInstructions,
+      additionalInstructions: mergedInstructions,
       language: planLanguage,
       isStandaloneTopic: activeTab === 'custom'
     };
@@ -353,10 +389,11 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
           <button
             type="button"
             onClick={onSelectSample}
-            className="px-3.5 py-2 text-xs font-bold text-teal-800 dark:text-teal-200 bg-teal-100/70 hover:bg-teal-200 dark:bg-teal-950/60 dark:hover:bg-teal-900 rounded-xl border border-teal-300 dark:border-teal-800 transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0 shadow-sm"
+            className="px-3.5 py-2 text-xs font-bold text-teal-800 dark:text-teal-200 bg-teal-100/70 hover:bg-teal-200 dark:bg-teal-950/60 dark:hover:bg-teal-900 rounded-xl border border-teal-300 dark:border-teal-800 transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0 shadow-sm cursor-pointer"
+            title="ইউনিক আনুষ্ঠানিক শ্রেণি পর্যবেক্ষণ (Formal Observation) মাস্টার প্ল্যান লোড করুন"
           >
             <FileSpreadsheet className="w-4 h-4 text-teal-700 dark:text-teal-400" />
-            <span>📋 নমুনা টেমপ্লেট লোড করুন (Colors - KG)</span>
+            <span>🌟 আনুষ্ঠানিক পর্যবেক্ষণ মাস্টার প্ল্যান দেখুন</span>
           </button>
         )}
       </div>
@@ -924,6 +961,171 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
             </div>
           </div>
         )}
+
+        {/* Intelligent Age & Topic Pedagogical Activities Engine */}
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50/70 via-teal-50/40 to-emerald-50/70 dark:from-amber-950/30 dark:via-slate-800/60 dark:to-teal-950/30 border border-amber-200/80 dark:border-amber-900/60 shadow-xs space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 dark:border-amber-900/50 pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 bg-amber-500 text-white rounded-xl shadow-xs">
+                <Brain className="w-4 h-4" />
+              </span>
+              <div>
+                <h3 className="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <span>বুদ্ধিমত্তা সম্পন্ন শিশুতোষ কার্যক্রম ও শিখন যাচাই (INTELLIGENT ACTIVITIES)</span>
+                  <span className="text-[10px] bg-teal-600 text-white px-2 py-0.2 rounded-full font-bold">
+                    স্বয়ংক্রিয় পেডাগোজি
+                  </span>
+                </h3>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                  বয়স ও বিষয় অনুযায়ী এআই এই অনন্য কার্যক্রমগুলো স্বয়ংক্রিয়ভাবে পাঠ পরিকল্পনায় সাজাবে। প্রয়োজন অনুযায়ী টিক দিয়ে বাদ বা অগ্রাধিকার দিন:
+                </p>
+              </div>
+            </div>
+            <div className="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-white/80 dark:bg-slate-900/80 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800 self-start sm:self-auto shrink-0">
+              নির্বাচিত: {selectedActivities.length}/৬টি কার্যক্রম
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {/* 1. Realia & Mystery Bag */}
+            <div
+              onClick={() => toggleActivity('realia_bag')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5 ${
+                selectedActivities.includes('realia_bag')
+                  ? 'bg-white dark:bg-slate-800 border-teal-500 ring-2 ring-teal-500/20 shadow-xs'
+                  : 'bg-white/60 dark:bg-slate-850 border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${selectedActivities.includes('realia_bag') ? 'bg-teal-600 text-white' : 'border border-slate-300'}`}>
+                {selectedActivities.includes('realia_bag') && <CheckCircle2 className="w-3.5 h-3.5" />}
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  <span>🎒 রহস্যের থলে ও বাস্তব বস্তু</span>
+                </div>
+                <div className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold">১. সংবেদনশীল আকর্ষণ (Sensory Hook)</div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  চোখ বন্ধ করে স্পর্শ বা ঘ্রাণে বস্তু অনুমান ও আনন্দ সৃষ্টি
+                </p>
+              </div>
+            </div>
+
+            {/* 2. TPR Mime */}
+            <div
+              onClick={() => toggleActivity('tpr_mime')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5 ${
+                selectedActivities.includes('tpr_mime')
+                  ? 'bg-white dark:bg-slate-800 border-teal-500 ring-2 ring-teal-500/20 shadow-xs'
+                  : 'bg-white/60 dark:bg-slate-850 border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${selectedActivities.includes('tpr_mime') ? 'bg-teal-600 text-white' : 'border border-slate-300'}`}>
+                {selectedActivities.includes('tpr_mime') && <CheckCircle2 className="w-3.5 h-3.5" />}
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  <span>🎭 অঙ্গভঙ্গি ড্রিল (TPR Mime)</span>
+                </div>
+                <div className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold">২. মূর্ত উপস্থাপন (Modeling)</div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  ফুল ফোটা, খাওয়ার অভিনয় ও সুরের তরঙ্গে স্থায়ী মুখস্থকরণ
+                </p>
+              </div>
+            </div>
+
+            {/* 3. Flyswatter Board Relay */}
+            <div
+              onClick={() => toggleActivity('flyswatter_relay')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5 ${
+                selectedActivities.includes('flyswatter_relay')
+                  ? 'bg-white dark:bg-slate-800 border-teal-500 ring-2 ring-teal-500/20 shadow-xs'
+                  : 'bg-white/60 dark:bg-slate-850 border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${selectedActivities.includes('flyswatter_relay') ? 'bg-teal-600 text-white' : 'border border-slate-300'}`}>
+                {selectedActivities.includes('flyswatter_relay') && <CheckCircle2 className="w-3.5 h-3.5" />}
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  <span>⚡ দ্রুত কার্ড স্পর্শ দৌড়</span>
+                </div>
+                <div className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold">৩. সক্রিয় খেলা (Practice / Race)</div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  বোর্ডে টানানো কার্ডে শব্দ শুনে দ্রুত হাত দেওয়ার দলগত প্রতিযোগিতা
+                </p>
+              </div>
+            </div>
+
+            {/* 4. What's Missing */}
+            <div
+              onClick={() => toggleActivity('whats_missing')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5 ${
+                selectedActivities.includes('whats_missing')
+                  ? 'bg-white dark:bg-slate-800 border-teal-500 ring-2 ring-teal-500/20 shadow-xs'
+                  : 'bg-white/60 dark:bg-slate-850 border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${selectedActivities.includes('whats_missing') ? 'bg-teal-600 text-white' : 'border border-slate-300'}`}>
+                {selectedActivities.includes('whats_missing') && <CheckCircle2 className="w-3.5 h-3.5" />}
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  <span>🧩 কোন বস্তুটি হারিয়ে গেল?</span>
+                </div>
+                <div className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold">৪. মেমোরি ড্রিল (Memory Recall)</div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  চোখ বন্ধ করিয়ে একটি জিনিস লুকিয়ে ফেলা ও স্মৃতি পরীক্ষা
+                </p>
+              </div>
+            </div>
+
+            {/* 5. Exit Ticket & Star Award */}
+            <div
+              onClick={() => toggleActivity('exit_ticket')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5 ${
+                selectedActivities.includes('exit_ticket')
+                  ? 'bg-white dark:bg-slate-800 border-teal-500 ring-2 ring-teal-500/20 shadow-xs'
+                  : 'bg-white/60 dark:bg-slate-850 border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${selectedActivities.includes('exit_ticket') ? 'bg-teal-600 text-white' : 'border border-slate-300'}`}>
+                {selectedActivities.includes('exit_ticket') && <CheckCircle2 className="w-3.5 h-3.5" />}
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  <span>🌟 এক্সিট টিকিট ও গোল্ডেন স্টার</span>
+                </div>
+                <div className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold">৫. বাচ্চার শিখন যাচাই (Exit Check)</div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  প্রতিটি বাচ্চার শেখা নিশ্চিতকরণ ও গোল্ডেন স্টার স্টিকার প্রদান
+                </p>
+              </div>
+            </div>
+
+            {/* 6. Makhraj / Phonics Drill */}
+            <div
+              onClick={() => toggleActivity('makhraj_drill')}
+              className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-2.5 ${
+                selectedActivities.includes('makhraj_drill')
+                  ? 'bg-white dark:bg-slate-800 border-teal-500 ring-2 ring-teal-500/20 shadow-xs'
+                  : 'bg-white/60 dark:bg-slate-850 border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${selectedActivities.includes('makhraj_drill') ? 'bg-teal-600 text-white' : 'border border-slate-300'}`}>
+                {selectedActivities.includes('makhraj_drill') && <CheckCircle2 className="w-3.5 h-3.5" />}
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  <span>🪞 মাখরাজ আয়না ও বাতাস পরীক্ষা</span>
+                </div>
+                <div className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold">ধ্বনিবিজ্ঞান ও তাজবীদ (Phonics)</div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  ছোট আয়না ও মুখের সামনে হাত দিয়ে শুদ্ধ উচ্চারণ ড্রিল
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Additional Custom Instructions */}
         <div>
