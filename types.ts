@@ -301,6 +301,8 @@ export interface SymbolKeyMap {
 export interface DetailedLessonPlan {
   id?: string;
   language?: PlanLanguage | string;
+  observationTitle?: string; // e.g. "Formal Observation-02"
+  institutionName?: string; // e.g. "মাদরাসাতুস সুন্নাহ"
   // Metadata Grid (Exact match)
   className: string; // e.g. "KG" or "৫ম শ্রেণি"
   topic: string; // e.g. "Colors (Red, Blue, Yellow)"
@@ -320,6 +322,9 @@ export interface DetailedLessonPlan {
 
   // Key to symbols (Exact match)
   symbolKeys: SymbolKeyMap;
+
+  // Teacher's Note (from Madrasatus Sunnah official format)
+  teachersNote?: string;
 
   // Optional legacy fields for backward compatibility
   lessonProfile?: {

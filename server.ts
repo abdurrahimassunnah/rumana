@@ -1036,26 +1036,25 @@ async function startServer() {
            - Clear, measurable outcomes in the selected language (${effectiveLang === 'bn' ? 'বাংলায় "পাঠ শেষে শিক্ষার্থীরা..."' : ''}).
         4. **Success Criteria**:
            - 3 actionable bullet/numbered items in the selected language (${effectiveLang === 'bn' ? 'বাংলায় "সাফল্য নির্ণায়ক: আমি পারি:"' : ''}).
-        5. **Lesson Procedure (5 Standard Master Pedagogical Stages)**:
-           - Stage 1: Lead in & Sensory Hook (৩-৫ মিনিট) — রহস্যের থলে (Mystery Bag), ঘ্রাণ/স্পর্শ বা বাস্তব বস্তু (Realia) প্রদর্শন
-           - Stage 2: Direct Presentation & Kinesthetic Modeling / TPR (১০-১২ মিনিট) — বাস্তব বস্তু ও অঙ্গভঙ্গি ড্রিল (TPR Mime & Echo Wave)
-           - Stage 3: Active Kinesthetic Practice & Board Game (৮-১০ মিনিট) — বোর্ড ফ্ল্যাশকার্ড দ্রুত স্পর্শ (Flyswatter Fast-Touch Board Relay)
-           - Stage 4: Cognitive Memory Recall & Mystery Challenge (৫-৭ মিনিট) — কোন বস্তুটি হারিয়ে গেল? (What's Missing? Sensory Recall Challenge)
-           - Stage 5: Formative Assessment & Exit Check (৩-৫ মিনিট) — এক্সিট টিকিট ড্রিল ও স্মাইলি গোল্ডেন স্টার প্রদান (Exit Ticket & Star Award)
-           - Each stage must specify:
-             - "stageAndTime": formatted string in the selected language (e.g. "${effectiveLang === 'bn' ? '১. প্রারম্ভিক প্রস্তুতি ও সংবেদনশীল আকর্ষণ (Lead in & Sensory Hook)\\n৫ মিনিট' : effectiveLang === 'ar' ? '١. التهيئة وجذب الانتباه بالحواس\\n٥ دقائق' : '1. Lead in & Sensory Hook\\n5 mins'}")
-             - "activityTitle": concise activity title in the selected language (e.g. "কার্যক্রম: রহস্যের থলে (Magic Bag) ও বাস্তব বস্তু প্রদর্শন")
-             - "procedurePoints": 3-4 detailed list items of teacher actions, step-by-step classroom cues, and playful instructions
-             - "childrenDo": what students physically/verbally do with high engagement
-             - "teacherDoes": what teacher does to facilitate, observe, and positively reinforce
-             - "intPattern": Interaction pattern codes (e.g. "W/C\\nC / O", "W/C\\nPW", "GW\\nPW", "W/C\\nS", "S\\nW/C")
-             - "aids": Teaching aids codes (e.g. "Magic Bag\\nRealia", "Realia\\nFlashcards", "Board\\nFlashcards", "Realia\\nCover Sheet", "Exit Cards\\nStar Stickers")
-        6. **Key to Symbols**:
-           - Interaction patterns & Aids in the selected language.
+        5. **Lesson Procedure (5 Standard Madrasatus Sunnah Formal Observation Stages)**:
+           - **Stage 1: Follow Up (≈ ৩-৪ মিনিট)**:
+             পূর্ববর্তী পাঠ স্মরণ ও হোমওয়ার্ক ফিডব্যাক (Prior Knowledge & Homework Feedback)। গত ক্লাসের বিষয় থেকে ১-২টি স্মরণ-প্রশ্ন করে আগের জ্ঞানের সাথে সংযোগ স্থাপন এবং হোমওয়ার্ক এর ফিডব্যাক নেওয়া। (Int: W/C)
+           - **Stage 2: Lead-in / Warm-up (≈ ৪ মিনিট)**:
+             আকর্ষণ ও উদ্দেশ্য ঘোষণা। স্মার্টবোর্ড/বাস্তব বস্তু/ভিডিও/অ্যানিমেশন/ছবি বা রহস্যের থলে প্রদর্শন করে কৌতূহল উদ্দীপক প্রশ্ন এবং আজকের পাঠের উদ্দেশ্য স্পষ্টভাবে ঘোষণা করা। (Int: W/C, Aids: B (Smartboard/PPT))
+           - **Stage 3: Main activity (Teaching) (≈ ১৫-১৭ মিনিট)**:
+             সহজ ভাষায় ব্যাখ্যা, স্লাইড উপস্থাপন, শিক্ষকের প্রত্যক্ষ মডেলিং/ডেমোস্ট্রেশন, মাঝে মাঝে questioning করে বোঝাপড়া যাচাই, এবং শিক্ষার্থীদের পুরো বিষয়টি ৫-৭ মিনিট মুখস্থ ও আয়ত্ত করার সময় দেওয়া। (Int: W/C, T–S, Aids: B, TB, (Smartboard/PPT))
+           - **Stage 4: Practice / play (≈ ৮-১০ মিনিট)**:
+             সক্রিয় দলগত অনুশীলন ও বাস্তবমুখী প্রয়োগ। Group work (কার্ড-সর্টিং বা ড্র্যাগ-ড্রপ গেম), Pair Work (ইমাম-মুক্তাদির মতো বা চরিত্র অনুযায়ী রোল-প্লে/প্রদর্শন), এবং শিক্ষকের পর্যবেক্ষণ ও অন্তত ৯০% শিক্ষার্থীর শিখন নিশ্চিতকরণ। (Int: GW, PW, S, Aids: W/S, ফ্ল্যাশকার্ড, Smartboard)
+           - **Stage 5: Review (≈ ৫ মিনিট)**:
+             পাঠ পর্যালোচনা ও শিখন মূল্যায়ন (Review & Wrap-up)। শিক্ষক ক্লাসের শিক্ষার্থীদের আজকের পাঠের মূল বিষয়বস্তু থেকে দ্রুত প্রশ্ন করে শিখন যাচাই করবেন, শিক্ষার্থীরা নিজের ভাষায় মূল শিক্ষা বলবে, এবং শিক্ষক প্রশংসা ও উৎসাহ দিয়ে সুন্দরভাবে সমাপ্তি টানবেন। (Int: W/C, Aids: B বা TB)
+           - **Teacher's Note (শিক্ষকের নোট)**:
+             পাঠ চলাকালে শিক্ষক কোন গুরুত্বপূর্ণ দিকটি বারবার স্মরণ করিয়ে দেবেন এবং বিশেষ কী সতর্কতা রাখবেন তার একটি বাস্তবমুখী ও স্পষ্ট দিকনির্দেশনা।
 
         Provide your output ONLY as valid JSON matching this schema:
         {
           "language": "${effectiveLang}",
+          "observationTitle": "Formal Observation-02",
+          "institutionName": "মাদরাসাতুস সুন্নাহ",
           "className": "${effectiveClass}",
           "topic": "${effectiveTopic}",
           "subject": "${effectiveSubject}",
@@ -1070,66 +1069,71 @@ async function startServer() {
           ],
           "procedures": [
             {
-              "stageAndTime": "${effectiveLang === 'bn' ? '১. প্রারম্ভিক প্রস্তুতি ও সংবেদনশীল আকর্ষণ (Lead in & Sensory Hook)\\n৫ মিনিট' : effectiveLang === 'ar' ? '١. التهيئة وجذب الانتباه بالحواس\\n٥ دقائق' : '1. Lead in & Sensory Hook\\n5 mins'}",
-              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'Follow Up\\n≈ ৪ মিনিট' : effectiveLang === 'ar' ? 'المتابعة والربط السابق\\n≈ ٤ دقائق' : 'Follow Up\\n≈ 4 mins'}",
+              "activityTitle": "${effectiveLang === 'bn' ? 'পূর্ববর্তী পাঠ স্মরণ ও হোমওয়ার্ক ফিডব্যাক' : effectiveLang === 'ar' ? 'مراجعة الدرس السابق وتغذية راجعة للواجب' : 'Prior Knowledge Recall & Homework Feedback'}",
               "procedurePoints": [
-                "Teacher action 1",
-                "Teacher action 2",
-                "Teacher action 3"
+                "Step 1: 1-2 recall questions from previous lesson",
+                "Step 2: Connecting previous knowledge with today topic",
+                "Step 3: Checking and acknowledging homework"
               ],
               "childrenDo": "Student action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
               "teacherDoes": "Teacher action in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
-              "intPattern": "W/C\\nC / O",
-              "aids": "Magic Bag\\nRealia"
+              "intPattern": "W/C",
+              "aids": "TB"
             },
             {
-              "stageAndTime": "${effectiveLang === 'bn' ? '২. মূর্ত উপস্থাপন ও শারীরিক অঙ্গভঙ্গি ড্রিল (Direct Modeling & TPR)\\n১২ মিনিট' : effectiveLang === 'ar' ? '٢. النمذجة المباشرة والحركة الجسدية (TPR)\\n١٢ دقيقة' : '2. Direct Modeling & Kinesthetic TPR\\n12 mins'}",
-              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'Lead-in /\\nWarm-up\\n≈ ৪ মিনিট' : effectiveLang === 'ar' ? 'التهيئة وجذب الانتباه\\n≈ ٤ دقائق' : 'Lead-in /\\nWarm-up\\n≈ 4 mins'}",
+              "activityTitle": "${effectiveLang === 'bn' ? 'ভিডিও/অ্যানিমেশন/বাস্তব বস্তু প্রদর্শন ও পাঠের উদ্দেশ্য ঘোষণা' : effectiveLang === 'ar' ? 'عرض الوسائط وإعلان أهداف الدرس' : 'Media/Object Hook & Lesson Goal Announcement'}",
               "procedurePoints": [
-                "Step 1",
-                "Step 2",
-                "Step 3"
+                "Hook point 1",
+                "Hook point 2",
+                "Announcement of today's learning purpose"
               ],
               "childrenDo": "Student action",
               "teacherDoes": "Teacher action",
-              "intPattern": "W/C\\nPW",
-              "aids": "Realia\\nFlashcards"
+              "intPattern": "W/C",
+              "aids": "B\\n(Smartboard/PPT)"
             },
             {
-              "stageAndTime": "${effectiveLang === 'bn' ? '৩. সক্রিয় খেলা ও দ্রুত স্পর্শ প্রতিযোগিতা (Kinesthetic Practice & Board Race)\\n১০ মিনিট' : effectiveLang === 'ar' ? '٣. الألعاب التنافسية ولمس البطاقات السريعة\\n١٠ دقائق' : '3. Active Kinesthetic Practice & Board Relay\\n10 mins'}",
-              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'Main activity\\n(Teaching)\\n≈ ১৭ মিনিট' : effectiveLang === 'ar' ? 'النشاط الرئيسي (التدريس)\\n≈ ١٧ دقيقة' : 'Main activity\\n(Teaching)\\n≈ 17 mins'}",
+              "activityTitle": "${effectiveLang === 'bn' ? 'সহজ ভাষায় ব্যাখ্যা, পাওয়ারপয়েন্ট স্লাইড ডেমোস্ট্রেশন ও বিষয়বস্তু আয়ত্তকরণ' : effectiveLang === 'ar' ? 'الشرح المبسط والنمذجة وحفظ المفاهيم' : 'Direct Modeling, Slide Presentation & Memorization'}",
               "procedurePoints": [
-                "Step 1",
-                "Step 2"
+                "Step 1: Clear concept explanation and distinction",
+                "Step 2: Step-by-step slides/board demonstration with icons",
+                "Step 3: Teacher practical modeling & student identification",
+                "Step 4: Formative questioning to verify understanding",
+                "Step 5: 5-7 minutes dedicated time for students to memorize and master the content"
               ],
               "childrenDo": "Student action",
               "teacherDoes": "Teacher action",
-              "intPattern": "GW\\nPW",
-              "aids": "Board\\nFlashcards"
+              "intPattern": "W/C\\nT–S",
+              "aids": "B, TB,\\n(Smartboard/PPT)"
             },
             {
-              "stageAndTime": "${effectiveLang === 'bn' ? '৪. স্মৃতিশক্তি ও ভিজ্যুয়াল মেমোরি পরীক্ষা (Cognitive Memory Recall)\\n৮ মিনিট' : effectiveLang === 'ar' ? '٤. تدريب الذاكرة البصرية واكتشاف المفقود\\n٨ دقائق' : '4. Cognitive Memory Recall\\n8 mins'}",
-              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'Practice /\\nplay\\n≈ 10 মিনিট' : effectiveLang === 'ar' ? 'التطبيق واللعب الهادف\\n≈ ١٠ دقائق' : 'Practice /\\nplay\\n≈ 10 mins'}",
+              "activityTitle": "${effectiveLang === 'bn' ? 'গ্রুপ কার্ড-সর্টিং ও জোড়ায় রোল-প্লে প্রদর্শন' : effectiveLang === 'ar' ? 'ترتيب البطاقات الجماعي ولعب الأدوار' : 'Group Card Sorting & Pair Role-Play Demonstration'}",
               "procedurePoints": [
-                "Step 1",
-                "Step 2"
+                "Group work: Sorting cards or drag-and-drop game",
+                "Pair work: Demonstration / role-play applying the learning",
+                "Teacher monitoring, ensuring 90% student mastery with targeted feedback"
               ],
               "childrenDo": "Student action",
               "teacherDoes": "Teacher action",
-              "intPattern": "W/C\\nS",
-              "aids": "Realia\\nCover Sheet"
+              "intPattern": "GW\\nPW\\nS",
+              "aids": "W/S, ফ্ল্যাশকার্ড,\\nSmartboard"
             },
             {
-              "stageAndTime": "${effectiveLang === 'bn' ? '৫. শিখন নিশ্চিতকরণ ও এক্সিট টিকিট মূল্যায়ন (Formative Assessment & Exit Check)\\n৫ মিনিট' : effectiveLang === 'ar' ? '٥. التأكد من الفهم وتذكرة الخروج ونجمة التفوق\\n٥ دقائق' : '5. Formative Assessment & Exit Ticket\\n5 mins'}",
-              "activityTitle": "Activity title in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+              "stageAndTime": "${effectiveLang === 'bn' ? 'Review\\n≈ ৫ মিনিট' : effectiveLang === 'ar' ? 'المراجعة والخاتمة\\n≈ ٥ دقائق' : 'Review\\n≈ 5 mins'}",
+              "activityTitle": "${effectiveLang === 'bn' ? 'পাঠ পর্যালোচনা ও মূল্যায়ন (Review & Wrap-up)' : effectiveLang === 'ar' ? 'مراجعة الدرس والخاتمة' : 'Lesson Review & Wrap-up'}",
               "procedurePoints": [
-                "Step 1",
-                "Step 2"
+                "Quick question-answer to review key concepts learned today",
+                "Students summarize core takeaway in their own words",
+                "Teacher provides positive reinforcement, praise, and wraps up the lesson"
               ],
               "childrenDo": "Student action",
               "teacherDoes": "Teacher action",
-              "intPattern": "S\\nW/C",
-              "aids": "Exit Cards\\nStar Stickers"
+              "intPattern": "W/C",
+              "aids": "B"
             }
           ],
           "symbolKeys": {
@@ -1137,14 +1141,16 @@ async function startServer() {
               { "symbol": "W/C", "meaning": "${effectiveLang === 'bn' ? 'পুরো শ্রেণি (Whole class)' : effectiveLang === 'ar' ? 'كامل الصف' : 'Whole class'}" },
               { "symbol": "PW", "meaning": "${effectiveLang === 'bn' ? 'জোড়ায় কাজ (Pair work)' : effectiveLang === 'ar' ? 'عمل ثنائي' : 'Pair work'}" },
               { "symbol": "GW", "meaning": "${effectiveLang === 'bn' ? 'দলগত কাজ (Group work)' : effectiveLang === 'ar' ? 'عمل جماعي' : 'Group work'}" },
-              { "symbol": "S", "meaning": "${effectiveLang === 'bn' ? 'একক কাজ (Individual)' : effectiveLang === 'ar' ? 'عمل فردي' : 'Students work individually'}" }
+              { "symbol": "T–S", "meaning": "${effectiveLang === 'bn' ? 'শিক্ষক-শিক্ষার্থী মিথস্ক্রিয়া (Teacher-Student interaction)' : effectiveLang === 'ar' ? 'تفاعل المعلم والطلاب' : 'Teacher-Student interaction'}" },
+              { "symbol": "S", "meaning": "${effectiveLang === 'bn' ? 'একক কাজ (Individual student)' : effectiveLang === 'ar' ? 'عمل فردي' : 'Students work individually'}" }
             ],
             "aidsKeys": [
-              { "symbol": "SB", "meaning": "${effectiveLang === 'bn' ? 'স্মার্টবোর্ড / বোর্ড' : effectiveLang === 'ar' ? 'السبورة الذكية' : 'Smartboard'}" },
-              { "symbol": "TB", "meaning": "${effectiveLang === 'bn' ? 'পাঠ্যবই' : effectiveLang === 'ar' ? 'الكتاب المدرسي' : 'Textbook'}" },
-              { "symbol": "W/S", "meaning": "${effectiveLang === 'bn' ? 'ওয়ার্কশিট' : effectiveLang === 'ar' ? 'ورقة عمل' : 'Worksheet'}" }
+              { "symbol": "B", "meaning": "${effectiveLang === 'bn' ? 'বোর্ড / স্মার্টবোর্ড (Board / Smartboard)' : effectiveLang === 'ar' ? 'السبورة / السبورة الذكية' : 'Board / Smartboard'}" },
+              { "symbol": "TB", "meaning": "${effectiveLang === 'bn' ? 'পাঠ্যবই (Textbook)' : effectiveLang === 'ar' ? 'الكتاب المدرسي' : 'Textbook'}" },
+              { "symbol": "W/S", "meaning": "${effectiveLang === 'bn' ? 'ওয়ার্কশিট (Worksheet)' : effectiveLang === 'ar' ? 'ورقة عمل' : 'Worksheet'}" }
             ]
-          }
+          },
+          "teachersNote": "Practical pedagogical note in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'} summarizing key alerts and points to remind students at every stage"
         }
       `;
 

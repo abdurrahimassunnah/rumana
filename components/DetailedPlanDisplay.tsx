@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { DetailedLessonPlan, LessonProcedureStep } from '../types';
 import { MadrasahLogo } from './MadrasahLogo';
-import { GradeAgeBanner } from './GradeAgeBanner';
 import { SmartActivitySuite } from './SmartActivitySuite';
 
 interface DetailedPlanDisplayProps {
@@ -167,6 +166,8 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
     };
 
     return {
+      observationTitle: raw.observationTitle || 'Formal Observation-02',
+      institutionName: raw.institutionName || 'মাদরাসাতুস সুন্নাহ',
       className,
       topic,
       subject,
@@ -176,7 +177,8 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
       learningObjective,
       successCriteria,
       procedures,
-      symbolKeys
+      symbolKeys,
+      teachersNote: raw.teachersNote || ''
     };
   };
 
@@ -239,27 +241,29 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
 
   // Localized UI Labels
   const labels = {
-    docTitle: isAr ? 'خطة الدرس' : (isBn ? 'লেসন প্ল্যান (পাঠ পরিকল্পনা)' : 'Lesson Plan'),
+    docTitle: isAr ? 'خطة الدرس' : 'Lesson Plan',
+    observationSubtitle: plan.observationTitle || 'Formal Observation-02',
     classLabel: isAr ? 'الصف:' : (isBn ? 'শ্রেণি:' : 'Class:'),
-    topicLabel: isAr ? 'الموضوع:' : (isBn ? 'পাঠ / বিষয়:' : 'Topic:'),
-    subjectLabel: isAr ? 'المادة:' : (isBn ? 'বিষয়:' : 'Subject:'),
+    topicLabel: isAr ? 'الموضوع:' : (isBn ? 'বিষয়/পাঠ:' : 'Topic:'),
+    subjectLabel: isAr ? 'المادة:' : (isBn ? 'বিষয় (Subject):' : 'Subject:'),
     teacherLabel: isAr ? 'اسم المعلم:' : (isBn ? 'শিক্ষকের নাম:' : 'Teacher’s name:'),
-    durationLabel: isAr ? 'المدة:' : (isBn ? 'সময় / ব্যাপ্তি:' : 'Duration:'),
-    materialsLabel: isAr ? 'الوسائل التعليمية:' : (isBn ? 'প্রয়োজনীয় উপকরণ:' : 'Materials:'),
-    learningObjectiveLabel: isAr ? 'الأهداف التعليمية:' : (isBn ? 'শিখনফল (Learning Objective):' : 'Learning Objective:'),
-    successCriteriaLabel: isAr ? 'معايير النجاح: أنا أستطيع:' : (isBn ? 'সাফল্য নির্ণায়ক (Success Criteria): আমি পারি:' : 'Success criteria: I can:'),
-    procedureSectionTitle: isAr ? 'خطوات سير الدرس' : (isBn ? 'পাঠ পরিচালনা প্রক্রিয়া ও কার্যক্রম (Lesson Procedure)' : 'Lesson Procedure'),
-    stagesTimeHeader: isAr ? 'المرحلة / الزمن' : (isBn ? 'স্তর ও সময়' : 'Stages/Time'),
-    procedureHeader: isAr ? 'الإجراءات والأنشطة التعليمية' : (isBn ? 'পাঠ পরিচালনা ও কার্যক্রম (Procedure)' : 'Procedure'),
-    intHeader: isAr ? 'نمط التفاعل (Int)' : (isBn ? 'ইন্ট্যারাকশন (Int)' : 'Int'),
-    aidsHeader: isAr ? 'الوسائل (Aids)' : (isBn ? 'টিচিং এইডস (Aids)' : 'Aids'),
+    durationLabel: isAr ? 'المدة:' : (isBn ? 'সময়কাল:' : 'Duration:'),
+    materialsLabel: isAr ? 'الوسائل التعليمية:' : (isBn ? 'উপকরণ:' : 'Materials:'),
+    learningObjectiveLabel: isAr ? 'الأهداف التعليمية:\n(Learning Objective)' : (isBn ? 'শিখনফল:\n(Learning Objective)' : 'Learning Objective:'),
+    successCriteriaLabel: isAr ? 'معايير النجاح:\n(Success Criteria)' : (isBn ? 'সাফল্যের মানদণ্ড:\n(Success Criteria)' : 'Success Criteria:'),
+    procedureSectionTitle: isAr ? 'خطوات سير الدرس (Lesson Procedure)' : 'Lesson Procedure',
+    stagesTimeHeader: isAr ? 'المرحلة / الزمن' : (isBn ? 'স্টেজ/সময়' : 'Stages/Time'),
+    procedureHeader: isAr ? 'الإجراءات والأنشطة (Procedure)' : (isBn ? 'কার্যক্রম বিবরণ (Procedure)' : 'Procedure'),
+    intHeader: 'Int',
+    aidsHeader: 'Aids',
     activityTitleLabel: isAr ? 'عنوان النشاط:' : (isBn ? 'কার্যক্রমের শিরোনাম:' : 'Activity Title:'),
     bulletPointsLabel: isAr ? 'خطوات النشاط:' : (isBn ? 'ধাপসমূহ:' : 'Bullet Points:'),
     childrenDoLabel: isAr ? 'نشاط الطلاب:' : (isBn ? 'শিক্ষার্থীরা যা করবে:' : 'Children do:'),
     teacherDoesLabel: isAr ? 'دور المعلم:' : (isBn ? 'শিক্ষকের ভূমিকা:' : 'Teacher does:'),
-    keyToSymbolsTitle: isAr ? 'دليل الرموز والمصطلحات:' : (isBn ? 'সংকেত ও প্রতীক নির্দেশিকা (Key to symbols):' : 'Key to symbols:'),
-    intKeyHeader: isAr ? 'نمط التفاعل (Int)' : (isBn ? 'ইন্ট্যারাকশন প্যাটার্ন (Int = interaction pattern)' : 'Int = interaction pattern'),
-    aidsKeyHeader: isAr ? 'الوسائل التعليمية (Aids)' : (isBn ? 'টিচিং এইডস (Aids)' : 'Aids'),
+    keyToSymbolsTitle: isAr ? 'دليل الرموز والمصطلحات:' : 'Key to Symbols',
+    intKeyHeader: 'Int = interaction pattern',
+    aidsKeyHeader: 'Aids',
+    teachersNoteLabel: isAr ? 'ملاحظة المعلم:' : (isBn ? 'শিক্ষকের নোট:' : "Teacher's Note:"),
     teacherSig: isAr ? 'توقيع المعلم والتاريخ' : (isBn ? 'শিক্ষকের স্বাক্ষর ও তারিখ' : "Teacher's Signature & Date"),
     supervisorSig: isAr ? 'مدير المدرسة / المشرف الأكاديمي' : (isBn ? 'অধ্যক্ষ / সুপারিনটেনডেন্ট / একাডেমিক সুপারভাইজারের স্বাক্ষর' : 'Head of Madrasah / Academic Supervisor'),
     addCriteria: isAr ? '+ إضافة معيار' : '+ ক্রাইটেরিয়া যোগ',
@@ -469,10 +473,10 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
         <!-- Procedure 4-column Table -->
         <table>
           <thead>
-            <tr style="background-color: #f3f4f6;">
-              <th style="border: 1px solid #000; width: 22%; text-align: ${isAr ? 'right' : 'left'};">${labels.stagesTimeHeader}</th>
-              <th style="border: 1px solid #000; width: 54%; text-align: ${isAr ? 'right' : 'left'};">${labels.procedureHeader}</th>
-              <th style="border: 1px solid #000; width: 12%; text-align: center;">${labels.intHeader}</th>
+            <tr style="background-color: #22c55e; color: #000; font-weight: bold;">
+              <th style="border: 1px solid #000; width: 20%; text-align: ${isAr ? 'right' : 'left'};">${labels.stagesTimeHeader}</th>
+              <th style="border: 1px solid #000; width: 58%; text-align: ${isAr ? 'right' : 'left'};">${labels.procedureHeader}</th>
+              <th style="border: 1px solid #000; width: 10%; text-align: center;">${labels.intHeader}</th>
               <th style="border: 1px solid #000; width: 12%; text-align: center;">${labels.aidsHeader}</th>
             </tr>
           </thead>
@@ -490,6 +494,18 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
           </tr>
           ${symbolRowsHtml}
         </table>
+
+        ${plan.teachersNote ? `
+        <!-- Teacher's Note -->
+        <div style="margin-top: 16px; padding: 10px; border-left: 4px solid #f59e0b; background-color: #fffbeb; font-size: 12px; line-height: 1.5;">
+          <strong>${labels.teachersNoteLabel}</strong> <em>${plan.teachersNote}</em>
+        </div>
+        ` : ''}
+
+        <!-- Running Footer -->
+        <div style="margin-top: 24px; padding-top: 8px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 11px; color: #4b5563;">
+          ${plan.institutionName || 'মাদরাসাতুস সুন্নাহ'} | ${plan.subject} — ${plan.className}
+        </div>
       </body>
       </html>
     `;
@@ -762,13 +778,6 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
         </div>
       </div>
 
-      {/* Child Age & Intellect-Tailored Concept Banner */}
-      <GradeAgeBanner
-        gradeLevel={plan.className}
-        subject={plan.subject}
-        compact={false}
-        className="my-3 print:hidden"
-      />
 
       {/* Smart Pedagogical Activity Suite (when toggled) */}
       {showActivitySuite && (
@@ -814,19 +823,38 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
         className={`bg-white text-black p-6 sm:p-10 border border-slate-300 rounded-xl shadow-md text-sm print:p-0 print:border-none print:shadow-none print:m-0 ${isAr ? 'font-amiri arabic-doc' : (isBn ? 'font-kalpurush bengali-doc' : 'font-times english-doc')}`}
         style={{ fontFamily: currentFontFamily, direction: isAr ? 'rtl' : 'ltr', textAlign: isAr ? 'right' : 'left' }}
       >
-        {/* Top Logo & Madrasah Crest on Left (Sample Exact Match) */}
-        <div className={`flex flex-col ${isAr ? 'items-start' : 'items-start'} pb-2`}>
-          <div className="flex items-center gap-3 mb-1">
+        {/* Top Header Running Line (as seen in official Madrasatus Sunnah formal observation) */}
+        <div className="text-[11px] font-bold text-slate-800 pb-1 border-b border-slate-300 mb-3 flex items-center justify-between">
+          <span>{plan.observationTitle ? `${plan.observationTitle} — Lesson Plan` : 'Formal Observation (02) — Lesson Plan'}</span>
+          <span className="text-[10px] text-slate-500 font-normal">{plan.institutionName || 'মাদরাসাতুস সুন্নাহ'}</span>
+        </div>
+
+        {/* Centered Crest, Madrasah Name, and Formal Observation Title */}
+        <div className="flex flex-col items-center justify-center text-center pb-4 pt-1">
+          <div className="flex flex-col items-center gap-1 mb-1">
             <MadrasahLogo size="sm" showText={false} variant="crest" allowUpload={true} />
-            <div className="flex flex-col">
+            <div className="flex flex-col items-center">
               <span className="text-[11px] font-bold text-teal-800 tracking-tight">مادراسَاتُس سُنَّة</span>
-              <span className="text-[10px] font-bold text-teal-900 tracking-tight">মাদরাসাতুস সুন্নাহ</span>
+              <span className="text-[11px] font-extrabold text-teal-900 tracking-tight">মাদরাসাতুস সুন্নাহ</span>
             </div>
           </div>
           
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950 mt-0.5 mb-2">
+          <h1 className="text-2xl font-black tracking-tight text-slate-950 mt-1">
             {labels.docTitle}
           </h1>
+
+          <div className="text-base font-bold text-slate-800 tracking-tight mt-0.5">
+            {isEditing ? (
+              <input
+                type="text"
+                value={plan.observationTitle || 'Formal Observation-02'}
+                onChange={(e) => setPlan({ ...plan, observationTitle: e.target.value })}
+                className="bg-amber-50 border border-amber-300 px-2 py-0.5 rounded text-xs text-center font-bold"
+              />
+            ) : (
+              <span>{plan.observationTitle || 'Formal Observation-02'}</span>
+            )}
+          </div>
         </div>
 
         {/* 1. Metadata Grid Table (Top Box) */}
@@ -937,68 +965,77 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
 
               {/* Row 4: Learning Objective */}
               <tr className="border-b border-black">
-                <td colSpan={2} className="p-2 align-top bg-white">
-                  <div className="space-y-1">
-                    <span className="font-bold">{labels.learningObjectiveLabel}</span>{' '}
-                    {isEditing ? (
-                      <textarea
-                        value={plan.learningObjective}
-                        onChange={(e) => setPlan({ ...plan, learningObjective: e.target.value })}
-                        rows={2}
-                        className="w-full bg-amber-50 border border-amber-300 p-1.5 rounded text-xs font-medium mt-1"
-                      />
-                    ) : (
-                      <span className="text-[13px] leading-relaxed">{plan.learningObjective}</span>
-                    )}
-                  </div>
+                <td className={`w-[22%] p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top bg-white font-bold text-[13px] whitespace-pre-line`}>
+                  {labels.learningObjectiveLabel}
+                </td>
+                <td className="w-[78%] p-2.5 align-top bg-white text-[13px]">
+                  {isEditing ? (
+                    <textarea
+                      value={plan.learningObjective}
+                      onChange={(e) => setPlan({ ...plan, learningObjective: e.target.value })}
+                      rows={2}
+                      className="w-full bg-amber-50 border border-amber-300 p-1.5 rounded text-xs font-medium"
+                    />
+                  ) : (
+                    <div className="space-y-1 leading-relaxed">
+                      {plan.learningObjective.split('\n').filter(l => l.trim()).map((line, lIdx) => (
+                        <div key={lIdx} className="flex items-start gap-1.5">
+                          <span className="text-slate-900 font-bold shrink-0">•</span>
+                          <span>{line.replace(/^[•\-\*]\s*/, '')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </td>
               </tr>
 
               {/* Row 5: Success criteria */}
               <tr>
-                <td colSpan={2} className="p-2 align-top bg-white">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold">{labels.successCriteriaLabel}</span>
-                      {isEditing && (
-                        <button
-                          type="button"
-                          onClick={handleAddSuccessCriteria}
-                          className="text-[11px] text-teal-700 hover:underline font-bold"
-                        >
-                          {labels.addCriteria}
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="space-y-1 mt-1 text-[13px]">
-                      {plan.successCriteria.map((crit, idx) => (
-                        <div key={idx} className="flex items-start gap-1.5">
-                          {isEditing ? (
-                            <div className="flex items-center gap-1 w-full">
-                              <input 
-                                type="text" 
-                                value={crit} 
-                                onChange={(e) => {
-                                  const updated = [...plan.successCriteria];
-                                  updated[idx] = e.target.value;
-                                  setPlan({ ...plan, successCriteria: updated });
-                                }}
-                                className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
-                              />
-                              <button 
-                                onClick={() => handleRemoveSuccessCriteria(idx)}
-                                className="text-rose-600 p-1 hover:bg-rose-50 rounded"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div>{crit.startsWith(`${idx + 1}.`) || crit.startsWith(`١.`) ? crit : `${idx + 1}. ${crit}`}</div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                <td className={`w-[22%] p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top bg-white font-bold text-[13px] whitespace-pre-line`}>
+                  <div className="flex flex-col gap-1">
+                    <span>{labels.successCriteriaLabel}</span>
+                    {isEditing && (
+                      <button
+                        type="button"
+                        onClick={handleAddSuccessCriteria}
+                        className="text-[11px] text-teal-700 hover:underline font-bold self-start"
+                      >
+                        {labels.addCriteria}
+                      </button>
+                    )}
+                  </div>
+                </td>
+                <td className="w-[78%] p-2.5 align-top bg-white text-[13px]">
+                  <div className="space-y-1.5">
+                    {plan.successCriteria.map((crit, idx) => (
+                      <div key={idx} className="flex items-start gap-1.5 leading-snug">
+                        {isEditing ? (
+                          <div className="flex items-center gap-1 w-full">
+                            <input 
+                              type="text" 
+                              value={crit} 
+                              onChange={(e) => {
+                                const updated = [...plan.successCriteria];
+                                updated[idx] = e.target.value;
+                                setPlan({ ...plan, successCriteria: updated });
+                              }}
+                              className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
+                            />
+                            <button 
+                              onClick={() => handleRemoveSuccessCriteria(idx)}
+                              className="text-rose-600 p-1 hover:bg-rose-50 rounded"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-start gap-1.5">
+                            <span className="text-slate-900 font-bold shrink-0">•</span>
+                            <span>{crit.replace(/^[•\-\*]\s*/, '')}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </td>
               </tr>
@@ -1015,17 +1052,17 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
         <div className="border border-black overflow-hidden mb-6">
           <table className="w-full border-collapse text-[13px]" dir={isAr ? 'rtl' : 'ltr'}>
             <thead>
-              <tr className="border-b border-black bg-white">
-                <th className={`p-2 ${isAr ? 'border-l' : 'border-r'} border-black text-inherit font-bold w-[22%]`}>
+              <tr className="border-b border-black bg-[#22c55e] text-slate-950 print:bg-[#22c55e]">
+                <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-inherit font-black text-left w-[20%]`}>
                   {labels.stagesTimeHeader}
                 </th>
-                <th className={`p-2 ${isAr ? 'border-l' : 'border-r'} border-black text-inherit font-bold w-[54%]`}>
+                <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-inherit font-black text-left w-[58%]`}>
                   {labels.procedureHeader}
                 </th>
-                <th className={`p-2 ${isAr ? 'border-l' : 'border-r'} border-black text-center font-bold w-[12%]`}>
+                <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-center font-black w-[10%]`}>
                   {labels.intHeader}
                 </th>
-                <th className="p-2 text-center font-bold w-[12%]">
+                <th className="p-2.5 text-center font-black w-[12%]">
                   {labels.aidsHeader}
                 </th>
               </tr>
@@ -1243,6 +1280,35 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Teacher's Note Box (Exact match from Madrasatus Sunnah official format) */}
+        {(plan.teachersNote || isEditing) && (
+          <div className="mt-5 p-3 rounded-lg border-l-4 border-amber-500 bg-amber-50/70 dark:bg-amber-950/20 text-[12.5px] text-slate-900 leading-relaxed break-inside-avoid">
+            <div className="flex items-baseline gap-1.5 font-bold text-amber-950 dark:text-amber-300">
+              <span className="shrink-0">{labels.teachersNoteLabel}</span>
+              {isEditing ? (
+                <textarea
+                  value={plan.teachersNote || ''}
+                  onChange={(e) => setPlan({ ...plan, teachersNote: e.target.value })}
+                  rows={2}
+                  placeholder="যেমন: সালাতের মধ্যে ওযু ভেঙ্গে যাওয়া, কথা বলা, হাঁটাচলা করা... এই বিষয়টি পাঠের প্রতিটি ধাপে বারবার স্মরণ করিয়ে দেওয়া হবে।"
+                  className="w-full bg-white dark:bg-slate-800 border border-amber-300 p-1.5 rounded text-xs font-medium text-slate-900 dark:text-slate-100 mt-1"
+                />
+              ) : (
+                <span className="font-normal italic text-slate-800 dark:text-slate-200">
+                  {plan.teachersNote}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Running Document Footer (from Madrasatus Sunnah format) */}
+        <div className="mt-6 pt-3 border-t border-slate-200 dark:border-slate-800 text-center text-[11px] font-semibold text-slate-600 dark:text-slate-400 tracking-wide">
+          <span>{plan.institutionName || 'মাদরাসাতুস সুন্নাহ'}</span>
+          <span className="mx-2 text-slate-400">|</span>
+          <span>{plan.subject} — {plan.className}</span>
         </div>
 
         {/* Signature lines for official classroom submission */}
