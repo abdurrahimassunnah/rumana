@@ -1135,6 +1135,14 @@ const App: React.FC = () => {
                       onRegenerate={() => {
                         if (currentDetailedPlanRequest) handleGenerateDetailedPlan(currentDetailedPlanRequest);
                       }}
+                      onRegenerateWithLength={(length) => {
+                        if (currentDetailedPlanRequest) {
+                          handleGenerateDetailedPlan({
+                            ...currentDetailedPlanRequest,
+                            planLength: length
+                          });
+                        }
+                      }}
                       isRegenerating={state.isLoading}
                     />
                   </div>

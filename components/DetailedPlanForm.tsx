@@ -16,7 +16,7 @@ import {
   Layers,
   Globe
 } from 'lucide-react';
-import { DetailedPlanRequest, TOCChapter, TOCTopic, SavedBook } from '../types';
+import { DetailedPlanRequest, TOCChapter, TOCTopic, SavedBook, PlanLengthMode } from '../types';
 import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
 import { TOCSelector } from './TOCSelector';
 import StoredFilesManager from './StoredFilesManager';
@@ -95,6 +95,7 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
   // Detailed settings
   const [totalDuration, setTotalDuration] = useState<number>(30);
   const [planDays, setPlanDays] = useState<number>(1);
+  const [planLength, setPlanLength] = useState<PlanLengthMode>('standard_3page');
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   
   // File Upload & Library state
@@ -316,6 +317,7 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       teacherName: teacherName || 'Kabir Ustadh',
       totalDurationMinutes: totalDuration,
       planDays: planDays,
+      planLength: planLength,
       content: content || `Lesson content for ${topicTitle}`,
       file: activeTab === 'custom' ? null : uploadedFile,
       fileData: activeTab === 'custom' ? null : fileBase64,
@@ -537,7 +539,78 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
           </div>
         </div>
 
-        {/* Navigation Tabs for Input Source */}
+        {/* Plan Length & Page Structure Selector */}
+        <div className="bg-gradient-to-r from-teal-50/70 via-emerald-50/50 to-slate-50 dark:from-teal-950/40 dark:via-emerald-950/30 dark:to-slate-900/60 p-3.5 sm:p-4 rounded-2xl border border-teal-200/80 dark:border-teal-900/60">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2.5">
+            <label className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-teal-600" />
+              লেসন প্লানের আকার / পৃষ্ঠা কাঠামো (Plan Length):
+            </label>
+            <span className="text-[11px] font-bold text-teal-800 dark:text-teal-300 bg-white/90 dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-teal-200 dark:border-teal-800 self-start sm:self-auto shadow-2xs">
+              {planLength === 'standard_3page' ? '★ প্রস্তাবিত: অফিসিয়াল মাত্র ৩ পৃষ্ঠা' : planLength === 'compact' ? '১-২ পৃষ্ঠা সংক্ষিপ্ত' : '৪+ পৃষ্ঠা বড় ও বিস্তারিত'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <button
+              type="button"
+              onClick={() => setPlanLength('compact')}
+              className={`p-3 rounded-xl border text-left transition-all relative ${
+                planLength === 'compact'
+                  ? 'bg-white dark:bg-slate-900 border-teal-600 ring-2 ring-teal-500/25 shadow-sm'
+                  : 'bg-white/70 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">১. সংক্ষিপ্ত (১-২ পৃষ্ঠা)</span>
+                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">Compact</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                সংক্ষিপ্ত ও কার্যকর বুলেট পয়েন্ট, দ্রুত ক্লাস গ্রহণ ও ১-২ পৃষ্ঠার প্রিন্টের জন্য উপযুক্ত।
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPlanLength('standard_3page')}
+              className={`p-3 rounded-xl border text-left transition-all relative ${
+                planLength === 'standard_3page'
+                  ? 'bg-white dark:bg-slate-900 border-teal-600 ring-2 ring-teal-500/30 shadow-md'
+                  : 'bg-white/70 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-black text-teal-800 dark:text-teal-300 flex items-center gap-1">
+                  ২. মাত্র ৩ পৃষ্ঠা (আদর্শ) ★
+                </span>
+                <span className="text-[10px] font-bold text-teal-700 dark:text-teal-400 bg-teal-100 dark:bg-teal-900/80 px-1.5 py-0.5 rounded">
+                  ডিফল্ট
+                </span>
+              </div>
+              <p className="text-[11px] text-teal-950 dark:text-teal-200 leading-snug font-medium">
+                মাদরাসাতুস সুন্নাহ ফরমাল অবজারভেশন মাস্টার টেমপ্লেট — নিখুঁতভাবে ঠিক ৩ পৃষ্ঠায় শেষ হয়।
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPlanLength('extended')}
+              className={`p-3 rounded-xl border text-left transition-all relative ${
+                planLength === 'extended'
+                  ? 'bg-white dark:bg-slate-900 border-teal-600 ring-2 ring-teal-500/25 shadow-sm'
+                  : 'bg-white/70 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">৩. বড় / বিস্তারিত (৪ পৃষ্ঠা)</span>
+                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">Extended</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                পূর্ণাঙ্গ ব্যাখ্যা, শিক্ষক-শিক্ষার্থী প্রশ্নোত্তর, বিস্তারিত অ্যাক্টিভিটি ও গভীর শিখন নিশ্চিতকরণ।
+              </p>
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/60 text-xs">
           <button
             type="button"

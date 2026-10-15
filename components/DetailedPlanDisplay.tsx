@@ -18,9 +18,10 @@ import {
   CheckCircle2, 
   Layers,
   ArrowUpDown,
-  Type
+  Type,
+  FileText
 } from 'lucide-react';
-import { DetailedLessonPlan, LessonProcedureStep } from '../types';
+import { DetailedLessonPlan, LessonProcedureStep, PlanLengthMode } from '../types';
 import { MadrasahLogo } from './MadrasahLogo';
 import { SmartActivitySuite } from './SmartActivitySuite';
 
@@ -28,6 +29,7 @@ interface DetailedPlanDisplayProps {
   plan: DetailedLessonPlan;
   onReset: () => void;
   onRegenerate?: () => void;
+  onRegenerateWithLength?: (length: PlanLengthMode) => void;
   isRegenerating?: boolean;
 }
 
@@ -35,6 +37,7 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
   plan: initialPlan,
   onReset,
   onRegenerate,
+  onRegenerateWithLength,
   isRegenerating = false
 }) => {
   // Normalize initial plan to ensure all properties exist
@@ -178,11 +181,14 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
       successCriteria,
       procedures,
       symbolKeys,
+      planLength: raw.planLength || 'standard_3page',
       teachersNote: raw.teachersNote || ''
     };
   };
 
   const [plan, setPlan] = useState<DetailedLessonPlan>(() => normalizePlan(initialPlan));
+  const [viewPlanLength, setViewPlanLength] = useState<PlanLengthMode>(() => (initialPlan.planLength as PlanLengthMode) || 'standard_3page');
+  const [layoutMode, setLayoutMode] = useState<'3page' | 'continuous'>('3page');
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeLangOverride, setActiveLangOverride] = useState<'auto' | 'ar' | 'bn' | 'en'>('auto');
@@ -190,6 +196,22 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
   const [showActivitySuite, setShowActivitySuite] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const printableRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const norm = normalizePlan(initialPlan);
+    setPlan(norm);
+    if (initialPlan.planLength) {
+      setViewPlanLength(initialPlan.planLength);
+    }
+  }, [initialPlan]);
+
+  const handleLengthChange = (mode: PlanLengthMode, triggerRegeneration: boolean = false) => {
+    setViewPlanLength(mode);
+    setPlan(prev => ({ ...prev, planLength: mode }));
+    if (triggerRegeneration && onRegenerateWithLength) {
+      onRegenerateWithLength(mode);
+    }
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -325,12 +347,29 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
     const customCss = `
       table { width: 100%; border-collapse: collapse; margin-top: 4px; }
       th, td { border: 1.5px solid #0f172a; padding: 6px 8px; font-size: ${isAr ? '13.5px' : '13px'}; }
-      th { background-color: #f1f5f9 !important; font-weight: bold; }
+      th { background-color: #22c55e !important; color: #000000 !important; font-weight: bold; }
       .bg-white { background: #ffffff !important; }
       .border-slate-800, .border-black { border-color: #000000 !important; }
       .text-black { color: #000000 !important; }
       .no-print, button, .lucide { display: none !important; }
       #lesson-plan-printable-sheet { border: none !important; box-shadow: none !important; padding: 0 !important; }
+      .print-page-break {
+        page-break-after: always !important;
+        break-after: page !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        display: block !important;
+        visibility: hidden !important;
+      }
+      .screen-only-divider {
+        display: none !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 10mm 12mm 10mm 12mm;
+      }
     `;
 
     printDocument({
@@ -348,7 +387,7 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
   };
 
   const handleDownloadDoc = () => {
-    const procedureRowsHtml = plan.procedures.map(p => `
+    const renderWordRows = (steps: LessonProcedureStep[]) => steps.map(p => `
       <tr>
         <td style="border: 1px solid #000; padding: 8px; vertical-align: top; width: 22%; font-weight: bold; font-size: 13px; text-align: ${isAr ? 'right' : 'left'};">
           ${p.stageAndTime.replace(/\n/g, '<br/>')}
@@ -369,6 +408,41 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
         </td>
       </tr>
     `).join('');
+
+    const pageBreakWord = "<br clear=all style='mso-special-character:line-break;page-break-before:always'>";
+    const wordProcedureTable = (steps: LessonProcedureStep[], titleSuffix: string = '') => `
+      <div class="section-title">${labels.procedureSectionTitle} ${titleSuffix}</div>
+      <table>
+        <thead>
+          <tr style="background-color: #22c55e; color: #000; font-weight: bold;">
+            <th style="border: 1px solid #000; width: 20%; text-align: ${isAr ? 'right' : 'left'};">${labels.stagesTimeHeader}</th>
+            <th style="border: 1px solid #000; width: 58%; text-align: ${isAr ? 'right' : 'left'};">${labels.procedureHeader}</th>
+            <th style="border: 1px solid #000; width: 10%; text-align: center;">${labels.intHeader}</th>
+            <th style="border: 1px solid #000; width: 12%; text-align: center;">${labels.aidsHeader}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${renderWordRows(steps)}
+        </tbody>
+      </table>
+    `;
+
+    const { p1, p2, p3 } = getPageProcedures();
+    const procedureContentWord = viewPlanLength === 'standard_3page'
+      ? `
+        ${wordProcedureTable(p1, '(অংশ ১ — প্রস্তুতি)')}
+        ${pageBreakWord}
+        <div style="font-size: 11px; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px;">
+          ${plan.observationTitle || 'Formal Observation (02)'} — Lesson Plan (চলমান) | ${plan.institutionName || 'মাদরাসাতুস সুন্নাহ'}
+        </div>
+        ${wordProcedureTable(p2, '(চলমান — মূল পাঠদান ও অনুশীলন)')}
+        ${pageBreakWord}
+        <div style="font-size: 11px; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px;">
+          ${plan.observationTitle || 'Formal Observation (02)'} — Lesson Plan (সমাপনী ও মূল্যায়ন) | ${plan.institutionName || 'মাদরাসাতুস সুন্নাহ'}
+        </div>
+        ${wordProcedureTable(p3, '(সমাপ্তি — পাঠ পর্যালোচনা)')}
+      `
+      : wordProcedureTable(plan.procedures, '');
 
     const symbolRowsHtml = plan.symbolKeys.intKeys.map((k, i) => {
       const aidKey = plan.symbolKeys.aidsKeys[i];
@@ -468,22 +542,8 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
           </tr>
         </table>
 
-        <div class="section-title">${labels.procedureSectionTitle}</div>
-
-        <!-- Procedure 4-column Table -->
-        <table>
-          <thead>
-            <tr style="background-color: #22c55e; color: #000; font-weight: bold;">
-              <th style="border: 1px solid #000; width: 20%; text-align: ${isAr ? 'right' : 'left'};">${labels.stagesTimeHeader}</th>
-              <th style="border: 1px solid #000; width: 58%; text-align: ${isAr ? 'right' : 'left'};">${labels.procedureHeader}</th>
-              <th style="border: 1px solid #000; width: 10%; text-align: center;">${labels.intHeader}</th>
-              <th style="border: 1px solid #000; width: 12%; text-align: center;">${labels.aidsHeader}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${procedureRowsHtml}
-          </tbody>
-        </table>
+        <!-- Procedure Content -->
+        ${procedureContentWord}
 
         <!-- Key to Symbols Table -->
         <div style="margin-top: 10px; font-weight: bold; font-size: 13px;">${labels.keyToSymbolsTitle}</div>
@@ -572,6 +632,216 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
     const updated = plan.successCriteria.filter((_, i) => i !== idx);
     setPlan({ ...plan, successCriteria: updated });
   };
+  // Partition procedures for strict 3-page layout
+  const getPageProcedures = () => {
+    const procs = plan.procedures;
+    if (procs.length <= 3) {
+      return {
+        p1: procs.slice(0, 1),
+        p2: procs.slice(1, 2),
+        p3: procs.slice(2)
+      };
+    }
+    if (procs.length === 4) {
+      return {
+        p1: procs.slice(0, 2),
+        p2: procs.slice(2, 3),
+        p3: procs.slice(3)
+      };
+    }
+    return {
+      p1: procs.slice(0, 2),
+      p2: procs.slice(2, 4),
+      p3: procs.slice(4)
+    };
+  };
+
+  const renderTableHeader = () => (
+    <thead>
+      <tr className="border-b border-black bg-[#22c55e] text-slate-950 print:bg-[#22c55e]">
+        <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-inherit font-black text-left w-[20%]`}>
+          {labels.stagesTimeHeader}
+        </th>
+        <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-inherit font-black text-left w-[58%]`}>
+          {labels.procedureHeader}
+        </th>
+        <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-center font-black w-[10%]`}>
+          {labels.intHeader}
+        </th>
+        <th className="p-2.5 text-center font-black w-[12%]">
+          {labels.aidsHeader}
+        </th>
+      </tr>
+    </thead>
+  );
+
+  const renderProcedureRow = (step: LessonProcedureStep, idx: number) => (
+    <tr key={idx} className="border-b border-black last:border-b-0">
+      {/* Column 1: Stages/Time */}
+      <td className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top font-bold text-[13px] bg-white`}>
+        {isEditing ? (
+          <textarea
+            value={step.stageAndTime}
+            onChange={(e) => handleUpdateProcedure(idx, 'stageAndTime', e.target.value)}
+            rows={2}
+            className="w-full bg-amber-50 border border-amber-300 p-1 rounded text-xs font-bold"
+          />
+        ) : (
+          <div className="space-y-0.5">
+            {step.stageAndTime.split('\n').map((line, lIdx) => (
+              <div key={lIdx} className={lIdx === 0 ? 'font-bold text-slate-900' : 'font-normal italic text-slate-700 text-xs'}>
+                {line}
+              </div>
+            ))}
+          </div>
+        )}
+      </td>
+
+      {/* Column 2: Procedure (Activity Title, Bullets, Children do, Teacher does) */}
+      <td className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top space-y-1.5 bg-white text-[13px]`}>
+        {isEditing ? (
+          <div className="space-y-2">
+            <div>
+              <label className="text-[10px] font-bold text-slate-600 block">{labels.activityTitleLabel}</label>
+              <input
+                type="text"
+                value={step.activityTitle}
+                onChange={(e) => handleUpdateProcedure(idx, 'activityTitle', e.target.value)}
+                className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs font-bold"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-bold text-slate-600">{labels.bulletPointsLabel}</label>
+                <button
+                  type="button"
+                  onClick={() => handleAddProcedurePoint(idx)}
+                  className="text-[10px] text-teal-700 font-bold hover:underline"
+                >
+                  {labels.addPoint}
+                </button>
+              </div>
+              {step.procedurePoints.map((pt, pIdx) => (
+                <div key={pIdx} className="flex items-center gap-1 mb-1">
+                  <input
+                    type="text"
+                    value={pt}
+                    onChange={(e) => {
+                      const updatedPts = [...step.procedurePoints];
+                      updatedPts[pIdx] = e.target.value;
+                      handleUpdateProcedure(idx, 'procedurePoints', updatedPts);
+                    }}
+                    className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
+                  />
+                  <button
+                    onClick={() => handleRemoveProcedurePoint(idx, pIdx)}
+                    className="text-rose-600 p-0.5"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-slate-600 block">{labels.childrenDoLabel}</label>
+                <input
+                  type="text"
+                  value={step.childrenDo}
+                  onChange={(e) => handleUpdateProcedure(idx, 'childrenDo', e.target.value)}
+                  className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-600 block">{labels.teacherDoesLabel}</label>
+                <input
+                  type="text"
+                  value={step.teacherDoes}
+                  onChange={(e) => handleUpdateProcedure(idx, 'teacherDoes', e.target.value)}
+                  className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="pt-1 text-right">
+              <button
+                onClick={() => handleRemoveProcedureRow(idx)}
+                className="text-xs text-rose-600 font-bold hover:underline"
+              >
+                {labels.deleteStep}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            {/* Activity title */}
+            <div className="font-bold text-slate-950 mb-1">
+              {step.activityTitle.startsWith('Activity:') || step.activityTitle.startsWith('النشاط:') || step.activityTitle.startsWith('نشاط:')
+                ? step.activityTitle 
+                : (isAr ? `النشاط: ${step.activityTitle}` : `Activity: ${step.activityTitle}`)}
+            </div>
+
+            {/* Bullet instructions */}
+            <ul className={`list-disc list-outside ${isAr ? 'pr-4' : 'pl-4'} space-y-0.5 text-slate-900 leading-snug`}>
+              {step.procedurePoints.map((p, pIdx) => (
+                <li key={pIdx} className="text-[12.5px]">
+                  {p}
+                </li>
+              ))}
+            </ul>
+
+            {/* Children do & Teacher does */}
+            <div className="mt-1.5 pt-1 space-y-0.5 text-[12.5px]">
+              <div>
+                <span className="font-bold">{labels.childrenDoLabel}</span> {step.childrenDo}
+              </div>
+              <div>
+                <span className="font-bold">{labels.teacherDoesLabel}</span> {step.teacherDoes}
+              </div>
+            </div>
+          </div>
+        )}
+      </td>
+
+      {/* Column 3: Int (Interaction pattern) */}
+      <td className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top text-center font-bold text-[13px] bg-white`}>
+        {isEditing ? (
+          <textarea
+            value={step.intPattern}
+            onChange={(e) => handleUpdateProcedure(idx, 'intPattern', e.target.value)}
+            rows={2}
+            className="w-full bg-amber-50 border border-amber-300 p-1 rounded text-xs font-bold text-center"
+          />
+        ) : (
+          <div className="space-y-0.5 font-bold">
+            {step.intPattern.split('\n').map((code, cIdx) => (
+              <div key={cIdx}>{code}</div>
+            ))}
+          </div>
+        )}
+      </td>
+
+      {/* Column 4: Aids */}
+      <td className="p-2.5 align-top text-center text-[13px] bg-white">
+        {isEditing ? (
+          <textarea
+            value={step.aids}
+            onChange={(e) => handleUpdateProcedure(idx, 'aids', e.target.value)}
+            rows={2}
+            className="w-full bg-amber-50 border border-amber-300 p-1 rounded text-xs text-center"
+          />
+        ) : (
+          <div className="space-y-0.5">
+            {step.aids.split('\n').map((item, iIdx) => (
+              <div key={iIdx} className="font-medium text-slate-900">{item}</div>
+            ))}
+          </div>
+        )}
+      </td>
+    </tr>
+  );
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300 max-w-5xl mx-auto">
@@ -701,6 +971,106 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
               Times New Roman
             </button>
           </div>
+
+          {/* Plan Size / Length Switcher */}
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 px-2 flex items-center gap-1">
+              <FileText className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+              আকার:
+            </span>
+            <button
+              type="button"
+              onClick={() => handleLengthChange('compact')}
+              disabled={isRegenerating}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                viewPlanLength === 'compact'
+                  ? 'bg-teal-700 text-white shadow-xs' 
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+              title="সংক্ষিপ্ত রূপরেখা (১-২ পৃষ্ঠা)"
+            >
+              সংক্ষিপ্ত (১-২ পৃ.)
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLengthChange('standard_3page')}
+              disabled={isRegenerating}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                viewPlanLength === 'standard_3page'
+                  ? 'bg-teal-700 text-white shadow-xs' 
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+              title="মাদরাসাতুস সুন্নাহ নির্ধারিত অফিসিয়াল মাত্র ৩ পৃষ্ঠার লেসন প্ল্যান"
+            >
+              মাত্র ৩ পৃষ্ঠা ★
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLengthChange('extended')}
+              disabled={isRegenerating}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                viewPlanLength === 'extended'
+                  ? 'bg-teal-700 text-white shadow-xs' 
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+              title="বড় ও পূর্ণাঙ্গ বিস্তারিত রূপরেখা (৪ পৃষ্ঠা)"
+            >
+              বড় / বিস্তারিত
+            </button>
+          </div>
+
+          {/* Quick AI Size Generator Buttons */}
+          {onRegenerateWithLength && (
+            <div className="flex items-center gap-1">
+              {viewPlanLength !== 'compact' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    showToast('সংক্ষিপ্ত ১-২ পৃষ্ঠার লেসন প্ল্যান প্রস্তুত করা হচ্ছে...');
+                    handleLengthChange('compact', true);
+                  }}
+                  disabled={isRegenerating}
+                  className="px-2.5 py-1.5 bg-slate-100 hover:bg-teal-50 dark:bg-slate-800 dark:hover:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs"
+                  title="AI দিয়ে আরও সংক্ষিপ্ত লেসন প্ল্যান বানিয়ে নিন"
+                >
+                  <Sparkles className="w-3 h-3 text-teal-600" />
+                  <span>⚡ আরো সংক্ষিপ্ত</span>
+                </button>
+              )}
+
+              {viewPlanLength !== 'standard_3page' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    showToast('আদর্শ মাত্র ৩ পৃষ্ঠার লেসন প্ল্যান প্রস্তুত করা হচ্ছে...');
+                    handleLengthChange('standard_3page', true);
+                  }}
+                  disabled={isRegenerating}
+                  className="px-2.5 py-1.5 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950 dark:hover:bg-teal-900 text-teal-800 dark:text-teal-200 border border-teal-300 dark:border-teal-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs"
+                  title="AI দিয়ে অফিসিয়াল মাত্র ৩ পৃষ্ঠার লেসন প্ল্যান বানিয়ে নিন"
+                >
+                  <Sparkles className="w-3 h-3 text-teal-600" />
+                  <span>📄 মাত্র ৩ পৃষ্ঠা</span>
+                </button>
+              )}
+
+              {viewPlanLength !== 'extended' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    showToast('বড় ও বিস্তারিত লেসন প্ল্যান প্রস্তুত করা হচ্ছে...');
+                    handleLengthChange('extended', true);
+                  }}
+                  disabled={isRegenerating}
+                  className="px-2.5 py-1.5 bg-slate-100 hover:bg-teal-50 dark:bg-slate-800 dark:hover:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs"
+                  title="AI দিয়ে আরও বড় ও বিস্তারিত লেসন প্ল্যান বানিয়ে নিন"
+                >
+                  <Sparkles className="w-3 h-3 text-teal-600" />
+                  <span>🔍 আরো বড়/বিস্তারিত</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Toggle Edit Mode */}
           <button
@@ -1043,201 +1413,118 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
           </table>
         </div>
 
-        {/* Section Heading: Lesson Procedure */}
-        <h2 className="text-inherit font-bold text-base sm:text-lg pt-6 pb-2 text-slate-950">
-          {labels.procedureSectionTitle}
-        </h2>
+        {/* ============================================================ */}
+        {/* PROCEDURE TABLE RENDERING: 3-PAGE STANDARD VS CONTINUOUS */}
+        {/* ============================================================ */}
+        {viewPlanLength === 'standard_3page' ? (
+          <>
+            {/* ----------------- PAGE 1: Follow Up & Lead-in ----------------- */}
+            <h2 className="text-inherit font-bold text-base sm:text-lg pt-5 pb-2 text-slate-950 flex items-center justify-between">
+              <span>{labels.procedureSectionTitle} (অংশ ১ — প্রস্তুতি ও উদ্দেশ্য ঘোষণা)</span>
+              <span className="text-[11px] font-bold text-teal-800 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800 print:hidden">
+                📄 পৃষ্ঠা ১ / ৩
+              </span>
+            </h2>
 
-        {/* 2. 4-Column Lesson Procedure Table */}
-        <div className="border border-black overflow-hidden mb-6">
-          <table className="w-full border-collapse text-[13px]" dir={isAr ? 'rtl' : 'ltr'}>
-            <thead>
-              <tr className="border-b border-black bg-[#22c55e] text-slate-950 print:bg-[#22c55e]">
-                <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-inherit font-black text-left w-[20%]`}>
-                  {labels.stagesTimeHeader}
-                </th>
-                <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-inherit font-black text-left w-[58%]`}>
-                  {labels.procedureHeader}
-                </th>
-                <th className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black text-center font-black w-[10%]`}>
-                  {labels.intHeader}
-                </th>
-                <th className="p-2.5 text-center font-black w-[12%]">
-                  {labels.aidsHeader}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {plan.procedures.map((step, idx) => (
-                <tr key={idx} className="border-b border-black last:border-b-0">
-                  {/* Column 1: Stages/Time */}
-                  <td className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top font-bold text-[13px] bg-white`}>
-                    {isEditing ? (
-                      <textarea
-                        value={step.stageAndTime}
-                        onChange={(e) => handleUpdateProcedure(idx, 'stageAndTime', e.target.value)}
-                        rows={2}
-                        className="w-full bg-amber-50 border border-amber-300 p-1 rounded text-xs font-bold"
-                      />
-                    ) : (
-                      <div className="space-y-0.5">
-                        {step.stageAndTime.split('\n').map((line, lIdx) => (
-                          <div key={lIdx} className={lIdx === 0 ? 'font-bold text-slate-900' : 'font-normal italic text-slate-700 text-xs'}>
-                            {line}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </td>
+            <div className="border border-black overflow-hidden mb-2">
+              <table className="w-full border-collapse text-[13px]" dir={isAr ? 'rtl' : 'ltr'}>
+                {renderTableHeader()}
+                <tbody>
+                  {getPageProcedures().p1.map(step => renderProcedureRow(step, plan.procedures.indexOf(step)))}
+                </tbody>
+              </table>
+            </div>
 
-                  {/* Column 2: Procedure (Activity Title, Bullets, Children do, Teacher does) */}
-                  <td className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top space-y-1.5 bg-white text-[13px]`}>
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-600 block">{labels.activityTitleLabel}</label>
-                          <input
-                            type="text"
-                            value={step.activityTitle}
-                            onChange={(e) => handleUpdateProcedure(idx, 'activityTitle', e.target.value)}
-                            className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs font-bold"
-                          />
-                        </div>
+            {/* Page 1 Footer */}
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 pt-2 border-t border-slate-200 mt-3 print:pt-1">
+              <span>{plan.institutionName || 'মাদরাসাতুস সুন্নাহ'} — {plan.observationTitle || 'Formal Observation (02)'}</span>
+              <span className="font-bold text-teal-800">পৃষ্ঠা ১ / ৩</span>
+            </div>
 
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="text-[10px] font-bold text-slate-600">{labels.bulletPointsLabel}</label>
-                            <button
-                              type="button"
-                              onClick={() => handleAddProcedurePoint(idx)}
-                              className="text-[10px] text-teal-700 font-bold hover:underline"
-                            >
-                              {labels.addPoint}
-                            </button>
-                          </div>
-                          {step.procedurePoints.map((pt, pIdx) => (
-                            <div key={pIdx} className="flex items-center gap-1 mb-1">
-                              <input
-                                type="text"
-                                value={pt}
-                                onChange={(e) => {
-                                  const updatedPts = [...step.procedurePoints];
-                                  updatedPts[pIdx] = e.target.value;
-                                  handleUpdateProcedure(idx, 'procedurePoints', updatedPts);
-                                }}
-                                className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
-                              />
-                              <button
-                                onClick={() => handleRemoveProcedurePoint(idx, pIdx)}
-                                className="text-rose-600 p-0.5"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+            {/* Page 1 to Page 2 Print Page Break */}
+            <div className="print-page-break my-6 py-2 border-y-2 border-dashed border-teal-300 dark:border-teal-800 bg-teal-50/60 dark:bg-teal-950/30 text-center text-xs font-bold text-teal-800 dark:text-teal-300 flex items-center justify-center gap-2 print:border-none print:py-0 print:my-0 print:h-0 print:text-transparent screen-only-divider">
+              <span>📄 পৃষ্ঠা ১ সমাপ্ত</span>
+              <span className="text-slate-400">|</span>
+              <span>পৃষ্ঠা ২-এ চলমান (মূল পাঠদান ও দলীয় অনুশীলন) ⤵</span>
+            </div>
 
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-600 block">{labels.childrenDoLabel}</label>
-                            <input
-                              type="text"
-                              value={step.childrenDo}
-                              onChange={(e) => handleUpdateProcedure(idx, 'childrenDo', e.target.value)}
-                              className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-600 block">{labels.teacherDoesLabel}</label>
-                            <input
-                              type="text"
-                              value={step.teacherDoes}
-                              onChange={(e) => handleUpdateProcedure(idx, 'teacherDoes', e.target.value)}
-                              className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
-                            />
-                          </div>
-                        </div>
+            {/* ----------------- PAGE 2: Main Activity & Practice ----------------- */}
+            <div className="text-[11px] font-bold text-slate-800 pb-1 border-b border-slate-300 mb-2 flex items-center justify-between pt-2">
+              <span>{plan.observationTitle ? `${plan.observationTitle} — Lesson Plan (চলমান)` : 'Formal Observation (02) — Lesson Plan (চলমান)'}</span>
+              <span className="text-[10px] text-slate-500 font-normal">{plan.institutionName || 'মাদরাসাতুস সুন্নাহ'}</span>
+            </div>
 
-                        <div className="pt-1 text-right">
-                          <button
-                            onClick={() => handleRemoveProcedureRow(idx)}
-                            className="text-xs text-rose-600 font-bold hover:underline"
-                          >
-                            {labels.deleteStep}
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        {/* Activity title */}
-                        <div className="font-bold text-slate-950 mb-1">
-                          {step.activityTitle.startsWith('Activity:') || step.activityTitle.startsWith('النشاط:') || step.activityTitle.startsWith('نشاط:')
-                            ? step.activityTitle 
-                            : (isAr ? `النشاط: ${step.activityTitle}` : `Activity: ${step.activityTitle}`)}
-                        </div>
+            <h2 className="text-inherit font-bold text-base sm:text-lg pb-2 text-slate-950 flex items-center justify-between">
+              <span>{labels.procedureSectionTitle} (চলমান — মূল পাঠদান ও দলীয় অনুশীলন)</span>
+              <span className="text-[11px] font-bold text-teal-800 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800 print:hidden">
+                📄 পৃষ্ঠা ২ / ৩
+              </span>
+            </h2>
 
-                        {/* Bullet instructions */}
-                        <ul className={`list-disc list-outside ${isAr ? 'pr-4' : 'pl-4'} space-y-0.5 text-slate-900 leading-snug`}>
-                          {step.procedurePoints.map((p, pIdx) => (
-                            <li key={pIdx} className="text-[12.5px]">
-                              {p}
-                            </li>
-                          ))}
-                        </ul>
+            <div className="border border-black overflow-hidden mb-2">
+              <table className="w-full border-collapse text-[13px]" dir={isAr ? 'rtl' : 'ltr'}>
+                {renderTableHeader()}
+                <tbody>
+                  {getPageProcedures().p2.map(step => renderProcedureRow(step, plan.procedures.indexOf(step)))}
+                </tbody>
+              </table>
+            </div>
 
-                        {/* Children do & Teacher does */}
-                        <div className="mt-1.5 pt-1 space-y-0.5 text-[12.5px]">
-                          <div>
-                            <span className="font-bold">{labels.childrenDoLabel}</span> {step.childrenDo}
-                          </div>
-                          <div>
-                            <span className="font-bold">{labels.teacherDoesLabel}</span> {step.teacherDoes}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </td>
+            {/* Page 2 Footer */}
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 pt-2 border-t border-slate-200 mt-3 print:pt-1">
+              <span>{plan.institutionName || 'মাদরাসাতুস সুন্নাহ'} — {plan.subject} ({plan.className})</span>
+              <span className="font-bold text-teal-800">পৃষ্ঠা ২ / ৩</span>
+            </div>
 
-                  {/* Column 3: Int (Interaction pattern) */}
-                  <td className={`p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top text-center font-bold text-[13px] bg-white`}>
-                    {isEditing ? (
-                      <textarea
-                        value={step.intPattern}
-                        onChange={(e) => handleUpdateProcedure(idx, 'intPattern', e.target.value)}
-                        rows={2}
-                        className="w-full bg-amber-50 border border-amber-300 p-1 rounded text-xs font-bold text-center"
-                      />
-                    ) : (
-                      <div className="space-y-0.5 font-bold">
-                        {step.intPattern.split('\n').map((code, cIdx) => (
-                          <div key={cIdx}>{code}</div>
-                        ))}
-                      </div>
-                    )}
-                  </td>
+            {/* Page 2 to Page 3 Print Page Break */}
+            <div className="print-page-break my-6 py-2 border-y-2 border-dashed border-teal-300 dark:border-teal-800 bg-teal-50/60 dark:bg-teal-950/30 text-center text-xs font-bold text-teal-800 dark:text-teal-300 flex items-center justify-center gap-2 print:border-none print:py-0 print:my-0 print:h-0 print:text-transparent screen-only-divider">
+              <span>📄 পৃষ্ঠা ২ সমাপ্ত</span>
+              <span className="text-slate-400">|</span>
+              <span>সমাপনী পাতা ৩-এ চলমান (পাঠ পর্যালোচনা, সংকেত ও শিক্ষকের নোট) ⤵</span>
+            </div>
 
-                  {/* Column 4: Aids */}
-                  <td className="p-2.5 align-top text-center text-[13px] bg-white">
-                    {isEditing ? (
-                      <textarea
-                        value={step.aids}
-                        onChange={(e) => handleUpdateProcedure(idx, 'aids', e.target.value)}
-                        rows={2}
-                        className="w-full bg-amber-50 border border-amber-300 p-1 rounded text-xs text-center"
-                      />
-                    ) : (
-                      <div className="space-y-0.5">
-                        {step.aids.split('\n').map((item, iIdx) => (
-                          <div key={iIdx} className="font-medium text-slate-900">{item}</div>
-                        ))}
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            {/* ----------------- PAGE 3: Review & Summary ----------------- */}
+            <div className="text-[11px] font-bold text-slate-800 pb-1 border-b border-slate-300 mb-2 flex items-center justify-between pt-2">
+              <span>{plan.observationTitle ? `${plan.observationTitle} — Lesson Plan (সমাপনী ও মূল্যায়ন)` : 'Formal Observation (02) — Lesson Plan (সমাপনী ও মূল্যায়ন)'}</span>
+              <span className="text-[10px] text-slate-500 font-normal">{plan.institutionName || 'মাদরাসাতুস সুন্নাহ'}</span>
+            </div>
+
+            <h2 className="text-inherit font-bold text-base sm:text-lg pb-2 text-slate-950 flex items-center justify-between">
+              <span>{labels.procedureSectionTitle} (সমাপ্তি — পাঠ পর্যালোচনা ও মূল্যায়ন)</span>
+              <span className="text-[11px] font-bold text-teal-800 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800 print:hidden">
+                📄 পৃষ্ঠা ৩ / ৩
+              </span>
+            </h2>
+
+            <div className="border border-black overflow-hidden mb-6">
+              <table className="w-full border-collapse text-[13px]" dir={isAr ? 'rtl' : 'ltr'}>
+                {renderTableHeader()}
+                <tbody>
+                  {getPageProcedures().p3.map(step => renderProcedureRow(step, plan.procedures.indexOf(step)))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Continuous / Compact / Extended Mode: Single Table */}
+            <h2 className="text-inherit font-bold text-base sm:text-lg pt-6 pb-2 text-slate-950 flex items-center justify-between">
+              <span>{labels.procedureSectionTitle}</span>
+              <span className="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 print:hidden">
+                {viewPlanLength === 'compact' ? '📄 সংক্ষিপ্ত ১-২ পৃষ্ঠা' : '📄 বড় ও বিস্তারিত রূপরেখা'}
+              </span>
+            </h2>
+
+            <div className="border border-black overflow-hidden mb-6">
+              <table className="w-full border-collapse text-[13px]" dir={isAr ? 'rtl' : 'ltr'}>
+                {renderTableHeader()}
+                <tbody>
+                  {plan.procedures.map((step, idx) => renderProcedureRow(step, idx))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
 
         {/* 3. Key to Symbols Table (Bottom Legend Box) */}
         <div className="space-y-1.5 break-inside-avoid">

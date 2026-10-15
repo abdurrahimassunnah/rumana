@@ -916,7 +916,7 @@ async function startServer() {
 
   // API Route: Generate Detailed Pedagogical Lesson Plan (মাদরাসাতুস সুন্নাহ বিস্তারিত পাঠ পরিকল্পনা - 100% Template Match)
   app.post("/api/generate-detailed-plan", async (req, res) => {
-    const { topicTitle, chapterTitle, gradeLevel, subject, teacherName, totalDurationMinutes, planDays, content, teachingMethodology, additionalInstructions, fileData, mimeType, pageRanges, startPage, endPage, language, isStandaloneTopic } = req.body;
+    const { topicTitle, chapterTitle, gradeLevel, subject, teacherName, totalDurationMinutes, planDays, content, teachingMethodology, additionalInstructions, fileData, mimeType, pageRanges, startPage, endPage, language, isStandaloneTopic, planLength } = req.body;
 
     try {
       const ai = getGeminiClient(req);
@@ -927,6 +927,7 @@ async function startServer() {
       const effectiveSubject = subject || "English (Literacy)";
       const effectiveTopic = topicTitle || "Colors (Red, Blue, Yellow)";
       const effectiveTeacher = teacherName || "Kabir Ustadh";
+      const effectivePlanLength: 'compact' | 'standard_3page' | 'extended' = planLength || 'standard_3page';
 
       const pageRangeDesc = (pageRanges && Array.isArray(pageRanges) && pageRanges.length > 0)
         ? pageRanges.map((r: any, i: number) => `রেঞ্জ ${i + 1}: পৃষ্ঠা ${r.start} থেকে ${r.end}`).join(", ")
@@ -980,6 +981,28 @@ async function startServer() {
         ========================================================================================================`
         : '';
 
+      const planLengthRule = effectivePlanLength === 'compact'
+        ? `========================================================================================================
+        **লেসন প্ল্যানের দৈর্ঘ্য: সংক্ষিপ্ত রূপরেখা (COMPACT / BRIEF 1-2 PAGES):**
+        ========================================================================================================
+        - শিক্ষক সংক্ষিপ্ত লেসন প্ল্যান চেয়েছেন (১-২ পৃষ্ঠা)।
+        - প্রতিটি স্টেজে সংক্ষিপ্ত, স্পষ্ট ও কার্যকর বুলেট পয়েন্ট দিন (প্রতি স্টেজে ১-২টি বুলেট)।
+        - অনাবশ্যক বাড়তি বাক্য পরিহার করে মূল পেডাগোজিক্যাল অ্যাকশন ও নির্দেশনা সরাসরি লিখুন।`
+        : effectivePlanLength === 'extended'
+        ? `========================================================================================================
+        **লেসন প্ল্যানের দৈর্ঘ্য: বড় / বিস্তারিত রূপরেখা (EXTENDED / COMPREHENSIVE 3-4 PAGES):**
+        ========================================================================================================
+        - শিক্ষক পূর্ণাঙ্গ, বড় ও বিস্তারিত লেসন প্ল্যান চেয়েছেন (৩-৪ পৃষ্ঠা)।
+        - প্রতিটি স্টেজে ৩-৪টি বিশদ বুলেট পয়েন্ট, শিক্ষক-শিক্ষার্থীর কথোপকথন (Dialogue cues), ডিফারেনশিয়েটেড শিখন ও মাইক্রো-টিচিং বিস্তারিতভাবে লিখুন।`
+        : `========================================================================================================
+        **লেসন প্ল্যানের দৈর্ঘ্য: মাদরাসাতুস সুন্নাহ নির্ধারিত মাত্র ৩ পৃষ্ঠা স্ট্যান্ডার্ড (STRICT 3-PAGE STANDARD):**
+        ========================================================================================================
+        - এই পাঠ পরিকল্পনাটি প্রিন্ট বা ডকুমেন্টে **ঠিক মাত্র ৩ পৃষ্ঠায় (Strictly 3 Pages)** নিখুঁতভাবে শেষ হতে হবে।
+        - পৃষ্ঠা ১: হেডার, মেটাডাটা টেবিল, শিখনফল, সাফল্যের মানদণ্ড এবং স্টেজ ১ (Follow Up) ও স্টেজ ২ (Lead-in)।
+        - পৃষ্ঠা ২: স্টেজ ৩ (Main activity / Teaching) ও স্টেজ ৪ (Practice / play)।
+        - পৃষ্ঠা ৩: স্টেজ ৫ (Review), Key to Symbols টেবিল, শিক্ষকের নোট ও স্বাক্ষর।
+        - প্রতিটি স্টেজে আদর্শ পরিমাপের ৩টি করে সুস্পষ্ট ও প্রাণবন্ত বুলেট পয়েন্ট দিন যাতে অতিরিক্ত লম্বা না হয়ে ঠিক ৩ পৃষ্ঠায় পরিপাটিভাবে শেষ হয়।`;
+
       const prompt = `
         You are a master teacher trainer and curriculum developer at Madrasatus Sunnah.
         Create an exact 100% copy-to-copy Lesson Plan matching the official "Lesson Plan Template" standard.
@@ -987,6 +1010,8 @@ async function startServer() {
         ${langRule}
 
         ${standaloneRule}
+
+        ${planLengthRule}
 
         ========================================================================================================
         **বুদ্ধিমত্তা সম্পন্ন শিশুতোষ অ্যাক্টিভিটি ও শিখন যাচাই নীতি (INTELLIGENT AGE & TOPIC-ADAPTIVE ACTIVITIES):**
@@ -1055,6 +1080,7 @@ async function startServer() {
           "language": "${effectiveLang}",
           "observationTitle": "Formal Observation-02",
           "institutionName": "মাদরাসাতুস সুন্নাহ",
+          "planLength": "${effectivePlanLength}",
           "className": "${effectiveClass}",
           "topic": "${effectiveTopic}",
           "subject": "${effectiveSubject}",

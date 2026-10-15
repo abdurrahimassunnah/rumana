@@ -303,6 +303,7 @@ export interface DetailedLessonPlan {
   language?: PlanLanguage | string;
   observationTitle?: string; // e.g. "Formal Observation-02"
   institutionName?: string; // e.g. "মাদরাসাতুস সুন্নাহ"
+  planLength?: PlanLengthMode; // 'compact' | 'standard_3page' | 'extended'
   // Metadata Grid (Exact match)
   className: string; // e.g. "KG" or "৫ম শ্রেণি"
   topic: string; // e.g. "Colors (Red, Blue, Yellow)"
@@ -359,6 +360,8 @@ export interface DetailedLessonPlan {
   rawMarkdown?: string;
 }
 
+export type PlanLengthMode = 'compact' | 'standard_3page' | 'extended';
+
 export interface DetailedPlanRequest {
   topicTitle: string;
   chapterTitle?: string;
@@ -367,6 +370,7 @@ export interface DetailedPlanRequest {
   teacherName?: string;
   totalDurationMinutes: number; // e.g. 30, 40 or 45 min
   planDays?: number; // 1, 2, 3, 4 days lesson plan breakdown
+  planLength?: PlanLengthMode; // 'compact' (সংক্ষিপ্ত ১-২ পৃষ্ঠা), 'standard_3page' (মাত্র ৩ পৃষ্ঠা - ডিফল্ট), 'extended' (বড়/বিস্তারিত ৩-৪ পৃষ্ঠা)
   content: string;
   file?: File | null;
   fileData?: string | null;
