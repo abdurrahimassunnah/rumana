@@ -64,6 +64,7 @@ import {
 import { startSessionTracking, logGlobalLessonPlan } from './services/analyticsService';
 import { UsageHistoryModal } from './components/UsageHistoryModal';
 import { LocationPermissionBanner } from './components/LocationPermissionBanner';
+import { MandatoryLocationGate } from './components/MandatoryLocationGate';
 
 const loadPdfJs = (): Promise<any> => {
   return new Promise((resolve, reject) => {
@@ -1195,6 +1196,9 @@ const App: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Mandatory Geolocation Permission Gate */}
+      <MandatoryLocationGate />
 
       {/* Real-time GPS Location Permission Banner */}
       <LocationPermissionBanner />

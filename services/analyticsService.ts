@@ -369,10 +369,32 @@ export async function reverseGeocodeWithLandmark(lat: number, lon: number, accur
   };
 }
 
-// ব্রাউজারে লোকেশন পারমিশন চাওয়া ও রিয়েল-টাইম জিপিএস লোকেশন সংগ্রহ
-export async function requestPreciseLocation(): Promise<PreciseLocationInfo | null> {
+export interface LocationDetailedResult {
+  success: boolean;
+  info?: PreciseLocationInfo;
+  errorCode?: 'denied' | 'unavailable' | 'timeout' | 'unsupported';
+  errorMessage?: string;
+}
+
+export function isLocationVerified(): boolean {
+  if (typeof window === 'undefined') return true;
+  const cached = getCachedPreciseLocation();
+  if (cached && cached.isGpsAccurate) return true;
+  try {
+    return localStorage.getItem('assunnah_location_verified') === 'true' && cached !== null;
+  } catch {
+    return false;
+  }
+}
+
+// ব্রাউজারে লোকেশন পারমিশন চাওয়া ও বিস্তারিত ফলাফলসহ হ্যান্ডলিং
+export async function requestPreciseLocationDetailed(): Promise<LocationDetailedResult> {
   if (typeof window === 'undefined' || !navigator.geolocation) {
-    return null;
+    return {
+      success: false,
+      errorCode: 'unsupported',
+      errorMessage: 'আপনার ব্রাউজারটি জিপিএস লোকেশন সমর্থন করে না।'
+    };
   }
 
   return new Promise((resolve) => {
@@ -387,6 +409,8 @@ export async function requestPreciseLocation(): Promise<PreciseLocationInfo | nu
           inMemoryPreciseGeo = preciseInfo;
           try {
             sessionStorage.setItem('assunnah_precise_location', JSON.stringify(preciseInfo));
+            localStorage.setItem('assunnah_location_verified', 'true');
+            sessionStorage.setItem('assunnah_location_verified', 'true');
           } catch {}
 
           // Notify UI listeners
@@ -400,7 +424,7 @@ export async function requestPreciseLocation(): Promise<PreciseLocationInfo | nu
             latitude: lat,
             longitude: lon,
             accuracyMeters: Math.round(accuracy),
-            location: preciseInfo.precisePlace, // প্রাথমিক লোকেশনে সুনির্দিষ্ট ল্যান্ডমার্ক আপডেট
+            location: preciseInfo.precisePlace,
             precisePlace: preciseInfo.precisePlace,
             landmark: preciseInfo.landmark,
             fullAddress: preciseInfo.fullAddress,
@@ -412,22 +436,39 @@ export async function requestPreciseLocation(): Promise<PreciseLocationInfo | nu
             updatedAt: new Date().toISOString()
           }, { merge: true });
 
-          resolve(preciseInfo);
+          resolve({ success: true, info: preciseInfo });
         } catch (e) {
           console.error("Error setting up precise location:", e);
-          resolve(null);
+          resolve({ 
+            success: false, 
+            errorCode: 'unavailable', 
+            errorMessage: 'লোকেশন প্রক্রিয়া করতে সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।' 
+          });
         }
       },
       (err) => {
+        let code: 'denied' | 'unavailable' | 'timeout' = 'unavailable';
+        let msg = 'লোকেশন পাওয়া সম্ভব হয়নি।';
+        if (err.code === 1) {
+          code = 'denied';
+          msg = 'লোকেশন অনুমতি ব্লক (Deny) করা হয়েছে। সাইটটি ব্যবহার করতে অনুগ্রহ করে ব্রাউজার সেটিংসে গিয়ে লোকেশন Allow করুন।';
+        } else if (err.code === 2) {
+          code = 'unavailable';
+          msg = 'ডিভাইসের অবস্থান শনাক্ত করা যায়নি। আপনার ডিভাইসের Location/GPS সার্ভিস চালু আছে কিনা দেখুন।';
+        } else if (err.code === 3) {
+          code = 'timeout';
+          msg = 'লোকেশন সনাক্ত করতে সময়সীমা পার হয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।';
+        }
+
         const sessionId = getOrCreateSessionId();
         const sessionDocRef = doc(db, 'app_sessions', sessionId);
-        const status = err.code === 1 ? 'denied' : 'prompt';
         setDoc(sessionDocRef, {
           locationSource: 'ip',
-          gpsPermissionStatus: status,
+          gpsPermissionStatus: code,
           updatedAt: new Date().toISOString()
         }, { merge: true }).catch(() => {});
-        resolve(null);
+
+        resolve({ success: false, errorCode: code, errorMessage: msg });
       },
       {
         enableHighAccuracy: true,
@@ -436,6 +477,12 @@ export async function requestPreciseLocation(): Promise<PreciseLocationInfo | nu
       }
     );
   });
+}
+
+// ব্রাউজারে লোকেশন পারমিশন চাওয়া ও রিয়েল-টাইম জিপিএস লোকেশন সংগ্রহ
+export async function requestPreciseLocation(): Promise<PreciseLocationInfo | null> {
+  const result = await requestPreciseLocationDetailed();
+  return result.success && result.info ? result.info : null;
 }
 
 // ডিভাইস ক্যাটাগরি, OS এবং ব্রাউজার শনাক্তকরণ
