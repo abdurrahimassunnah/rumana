@@ -20,6 +20,19 @@ export interface AppSession {
   country?: string;
   location?: string;
   isp?: string;
+
+  // Real-time GPS & Landmark tracking
+  isGpsAccurate?: boolean;
+  latitude?: number;
+  longitude?: number;
+  accuracyMeters?: number;
+  precisePlace?: string;       // e.g. "জাতীয় স্টেডিয়াম সংলগ্ন, গুলিস্তান, ঢাকা"
+  landmark?: string;           // e.g. "জাতীয় স্টেডিয়াম, ঢাকা"
+  fullAddress?: string;        // Full address details
+  googleMapsUrl?: string;      // Direct Google Maps pin
+  locationSource?: 'gps' | 'ip';
+  gpsPermissionStatus?: 'granted' | 'prompt' | 'denied' | 'unsupported';
+
   deviceType: 'Mobile' | 'Tablet' | 'Desktop';
   browser: string;
   os: string;
@@ -38,6 +51,18 @@ export interface GlobalLessonPlan {
   deviceId?: string;
   ip?: string;
   location?: string;
+
+  // Real-time GPS & Landmark tracking
+  isGpsAccurate?: boolean;
+  latitude?: number;
+  longitude?: number;
+  accuracyMeters?: number;
+  precisePlace?: string;
+  landmark?: string;
+  fullAddress?: string;
+  googleMapsUrl?: string;
+  locationSource?: 'gps' | 'ip';
+
   gradeLevel: string;
   duration: number;
   topicTitle?: string;
@@ -57,6 +82,21 @@ export interface GeoLocationInfo {
   country: string;
   location: string;
   isp: string;
+}
+
+export interface PreciseLocationInfo {
+  isGpsAccurate: boolean;
+  latitude: number;
+  longitude: number;
+  accuracyMeters: number;
+  precisePlace: string;
+  landmark: string;
+  fullAddress: string;
+  city: string;
+  region: string;
+  country: string;
+  googleMapsUrl: string;
+  source: 'gps' | 'ip';
 }
 
 export const ADMIN_HISTORY_PASSWORD = '45264773';
@@ -176,6 +216,228 @@ export async function fetchIpAndLocation(): Promise<GeoLocationInfo> {
   return detectedGeo;
 }
 
+let inMemoryPreciseGeo: PreciseLocationInfo | null = null;
+let locationListeners: ((info: PreciseLocationInfo) => void)[] = [];
+
+export function getCachedPreciseLocation(): PreciseLocationInfo | null {
+  if (inMemoryPreciseGeo) return inMemoryPreciseGeo;
+  try {
+    const cached = sessionStorage.getItem('assunnah_precise_location');
+    if (cached) {
+      inMemoryPreciseGeo = JSON.parse(cached);
+      return inMemoryPreciseGeo;
+    }
+  } catch {}
+  return null;
+}
+
+export function subscribeToPreciseLocation(listener: (info: PreciseLocationInfo) => void) {
+  locationListeners.push(listener);
+  const current = getCachedPreciseLocation();
+  if (current) {
+    listener(current);
+  }
+  return () => {
+    locationListeners = locationListeners.filter(l => l !== listener);
+  };
+}
+
+// রিভার্স জিওকোডিং ও নিকটস্থ জনপ্রিয় স্থাপনা/ল্যান্ডমার্ক শনাক্তকরণ
+export async function reverseGeocodeWithLandmark(lat: number, lon: number, accuracyMeters = 15): Promise<PreciseLocationInfo> {
+  const googleMapsUrl = `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+
+  // ১. Nominatim (OpenStreetMap) - বাংলা ভাষা ও বিস্তারিত জনপ্রিয় স্থাপনা তথ্যসহ
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&extratags=1&namedetails=1&accept-language=bn,en`,
+      { headers: { 'User-Agent': 'AssunnahLessonPlanner/1.0 (abdurrahimassunnah@gmail.com)' } }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const addr = data.address || {};
+
+      // জনপ্রিয় স্থাপনা / ল্যান্ডমার্ক / ঐতিহাসিক স্থান / প্রতিষ্ঠান শনাক্তকরণ
+      const rawLandmark = 
+        addr.amenity || 
+        addr.leisure || 
+        addr.building || 
+        addr.historic || 
+        addr.tourism || 
+        addr.railway || 
+        addr.shop || 
+        addr.office || 
+        addr.craft || 
+        data.name || 
+        '';
+
+      const neighbourhood = addr.neighbourhood || addr.suburb || addr.quarter || addr.city_district || addr.residential || '';
+      const road = addr.road || '';
+      const city = addr.city || addr.town || addr.municipality || addr.county || addr.state_district || 'বাংলাদেশ';
+      const region = addr.state || '';
+      const country = addr.country || 'বাংলাদেশ';
+
+      let landmarkText = rawLandmark ? `${rawLandmark}` : (neighbourhood ? `${neighbourhood}` : (road ? `${road}` : city));
+
+      // ব্যবহারকারীর জন্য স্পষ্ট ও নির্ভরযোগ্য পরিচিত ঠিকানা তৈরি
+      let precisePlace = '';
+      if (rawLandmark && (neighbourhood || road)) {
+        precisePlace = `${rawLandmark} সংলগ্ন, ${neighbourhood || road}, ${city}`;
+      } else if (rawLandmark) {
+        precisePlace = `${rawLandmark} সংলগ্ন, ${city}`;
+      } else if (road && neighbourhood) {
+        precisePlace = `${road}, ${neighbourhood}, ${city}`;
+      } else if (neighbourhood) {
+        precisePlace = `${neighbourhood}, ${city}`;
+      } else {
+        precisePlace = city;
+      }
+
+      return {
+        isGpsAccurate: true,
+        latitude: lat,
+        longitude: lon,
+        accuracyMeters: Math.round(accuracyMeters),
+        precisePlace: precisePlace.trim(),
+        landmark: landmarkText.trim(),
+        fullAddress: data.display_name || precisePlace,
+        city,
+        region,
+        country,
+        googleMapsUrl,
+        source: 'gps'
+      };
+    }
+  } catch (err) {
+    console.warn("Nominatim reverse geocode error, trying Photon fallback:", err);
+  }
+
+  // ২. Photon (Komoot OSM) ব্যাকআপ ফলব্যাক
+  try {
+    const res2 = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}`);
+    if (res2.ok) {
+      const data2 = await res2.json();
+      const props = data2.features?.[0]?.properties || {};
+      const landmarkText = props.name || props.street || props.locality || 'নিকটবর্তী স্থান';
+      const locality = props.locality || props.district || '';
+      const city = props.city || props.county || 'বাংলাদেশ';
+      const region = props.state || '';
+
+      let precisePlace = '';
+      if (props.name && locality) {
+        precisePlace = `${props.name} সংলগ্ন, ${locality}, ${city}`;
+      } else if (props.name) {
+        precisePlace = `${props.name} সংলগ্ন, ${city}`;
+      } else if (locality) {
+        precisePlace = `${locality}, ${city}`;
+      } else {
+        precisePlace = city;
+      }
+
+      return {
+        isGpsAccurate: true,
+        latitude: lat,
+        longitude: lon,
+        accuracyMeters: Math.round(accuracyMeters),
+        precisePlace: precisePlace.trim(),
+        landmark: landmarkText.trim(),
+        fullAddress: `${precisePlace}, ${city}`,
+        city,
+        region,
+        country: 'বাংলাদেশ',
+        googleMapsUrl,
+        source: 'gps'
+      };
+    }
+  } catch (err) {
+    console.warn("Photon fallback failed:", err);
+  }
+
+  // ৩. কোঅর্ডিনেট ফলব্যাক
+  return {
+    isGpsAccurate: true,
+    latitude: lat,
+    longitude: lon,
+    accuracyMeters: Math.round(accuracyMeters),
+    precisePlace: `জিপিএস পজিশন (${lat.toFixed(4)}, ${lon.toFixed(4)})`,
+    landmark: 'জিপিএস স্থানাঙ্ক',
+    fullAddress: `অক্ষাংশ: ${lat.toFixed(6)}, দ্রাঘিমাংশ: ${lon.toFixed(6)}`,
+    city: '',
+    region: '',
+    country: 'বাংলাদেশ',
+    googleMapsUrl,
+    source: 'gps'
+  };
+}
+
+// ব্রাউজারে লোকেশন পারমিশন চাওয়া ও রিয়েল-টাইম জিপিএস লোকেশন সংগ্রহ
+export async function requestPreciseLocation(): Promise<PreciseLocationInfo | null> {
+  if (typeof window === 'undefined' || !navigator.geolocation) {
+    return null;
+  }
+
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          const accuracy = pos.coords.accuracy || 15;
+
+          const preciseInfo = await reverseGeocodeWithLandmark(lat, lon, accuracy);
+          inMemoryPreciseGeo = preciseInfo;
+          try {
+            sessionStorage.setItem('assunnah_precise_location', JSON.stringify(preciseInfo));
+          } catch {}
+
+          // Notify UI listeners
+          locationListeners.forEach(listener => listener(preciseInfo));
+
+          // তাৎক্ষণিকভাবে বর্তমান সেশন ডকুমেন্টে আপডেট সংরক্ষণ
+          const sessionId = getOrCreateSessionId();
+          const sessionDocRef = doc(db, 'app_sessions', sessionId);
+          await setDoc(sessionDocRef, {
+            isGpsAccurate: true,
+            latitude: lat,
+            longitude: lon,
+            accuracyMeters: Math.round(accuracy),
+            location: preciseInfo.precisePlace, // প্রাথমিক লোকেশনে সুনির্দিষ্ট ল্যান্ডমার্ক আপডেট
+            precisePlace: preciseInfo.precisePlace,
+            landmark: preciseInfo.landmark,
+            fullAddress: preciseInfo.fullAddress,
+            city: preciseInfo.city,
+            region: preciseInfo.region,
+            googleMapsUrl: preciseInfo.googleMapsUrl,
+            locationSource: 'gps',
+            gpsPermissionStatus: 'granted',
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+
+          resolve(preciseInfo);
+        } catch (e) {
+          console.error("Error setting up precise location:", e);
+          resolve(null);
+        }
+      },
+      (err) => {
+        const sessionId = getOrCreateSessionId();
+        const sessionDocRef = doc(db, 'app_sessions', sessionId);
+        const status = err.code === 1 ? 'denied' : 'prompt';
+        setDoc(sessionDocRef, {
+          locationSource: 'ip',
+          gpsPermissionStatus: status,
+          updatedAt: new Date().toISOString()
+        }, { merge: true }).catch(() => {});
+        resolve(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 60000
+      }
+    );
+  });
+}
+
 // ডিভাইস ক্যাটাগরি, OS এবং ব্রাউজার শনাক্তকরণ
 export function getDeviceInfo() {
   if (typeof window === 'undefined') {
@@ -269,6 +531,9 @@ export function startSessionTracking() {
     }
   });
 
+  // স্বয়ংক্রিয়ভাবে রিয়েল-টাইম নির্ভুল জিপিএস লোকেশন ও জনপ্রিয় স্থাপনা সনাক্তকরণ শুরু
+  requestPreciseLocation().catch(() => {});
+
   // প্রতি ৩০ সেকেন্ডে হার্টবিট পিং
   if (heartbeatTimer) clearInterval(heartbeatTimer);
   heartbeatTimer = setInterval(async () => {
@@ -323,12 +588,23 @@ export async function logGlobalLessonPlan(planData: {
       }
     }
 
+    const precise = getCachedPreciseLocation();
+
     const payload: GlobalLessonPlan = {
       id: planId,
       sessionId,
       deviceId,
       ip: geo?.ip || '',
-      location: geo?.location || '',
+      location: precise?.precisePlace || geo?.location || '',
+      isGpsAccurate: Boolean(precise?.isGpsAccurate),
+      latitude: precise?.latitude,
+      longitude: precise?.longitude,
+      accuracyMeters: precise?.accuracyMeters,
+      precisePlace: precise?.precisePlace,
+      landmark: precise?.landmark,
+      fullAddress: precise?.fullAddress,
+      googleMapsUrl: precise?.googleMapsUrl,
+      locationSource: precise?.isGpsAccurate ? 'gps' : 'ip',
       gradeLevel: planData.gradeLevel,
       duration: planData.duration || 1,
       topicTitle: planData.topicTitle || '',
@@ -371,8 +647,10 @@ export async function fetchUsageSessions(limitCount = 2000): Promise<AppSession[
         sessionId: data.sessionId || d.id,
         deviceId: data.deviceId || 'পূর্বে সংরক্ষিত ডিভাইস',
         ip: data.ip || 'পূর্বে সংরক্ষিত',
-        location: data.location || 'পূর্বে সংরক্ষিত লোকেশন',
+        location: data.location || data.precisePlace || 'পূর্বে সংরক্ষিত লোকেশন',
         durationSeconds: data.durationSeconds || 0,
+        isGpsAccurate: Boolean(data.isGpsAccurate),
+        locationSource: data.locationSource || (data.isGpsAccurate ? 'gps' : 'ip')
       };
     });
   } catch (err) {

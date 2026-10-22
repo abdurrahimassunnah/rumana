@@ -63,6 +63,7 @@ import {
 } from './services/firebase';
 import { startSessionTracking, logGlobalLessonPlan } from './services/analyticsService';
 import { UsageHistoryModal } from './components/UsageHistoryModal';
+import { LocationPermissionBanner } from './components/LocationPermissionBanner';
 
 const loadPdfJs = (): Promise<any> => {
   return new Promise((resolve, reject) => {
@@ -1194,6 +1195,9 @@ const App: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Real-time GPS Location Permission Banner */}
+      <LocationPermissionBanner />
 
       {/* Usage Analytics & Activity History Modal */}
       <UsageHistoryModal 

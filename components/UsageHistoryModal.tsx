@@ -22,7 +22,8 @@ import {
   Download,
   Filter,
   Eye,
-  Calendar
+  Calendar,
+  Navigation
 } from 'lucide-react';
 import { 
   AppSession, 
@@ -158,6 +159,8 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
         (s.city && s.city.toLowerCase().includes(q)) ||
         (s.country && s.country.toLowerCase().includes(q)) ||
         (s.location && s.location.toLowerCase().includes(q)) ||
+        (s.precisePlace && s.precisePlace.toLowerCase().includes(q)) ||
+        (s.landmark && s.landmark.toLowerCase().includes(q)) ||
         (s.deviceId && s.deviceId.toLowerCase().includes(q)) ||
         (s.browser && s.browser.toLowerCase().includes(q)) ||
         (s.os && s.os.toLowerCase().includes(q)) ||
@@ -180,6 +183,8 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
         (p.previewText && p.previewText.toLowerCase().includes(q)) ||
         (p.ip && p.ip.toLowerCase().includes(q)) ||
         (p.location && p.location.toLowerCase().includes(q)) ||
+        (p.precisePlace && p.precisePlace.toLowerCase().includes(q)) ||
+        (p.landmark && p.landmark.toLowerCase().includes(q)) ||
         (p.deviceId && p.deviceId.toLowerCase().includes(q)) ||
         (p.fullContent && p.fullContent.toLowerCase().includes(q))
       );
@@ -192,6 +197,7 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
     const totalDurationSec = filteredSessions.reduce((acc, curr) => acc + (curr.durationSeconds || 0), 0);
     const uniqueDevicesSet = new Set(filteredSessions.map(s => s.deviceId).filter(Boolean));
     const totalPlansCreated = filteredPlans.length;
+    const gpsCount = filteredSessions.filter(s => s.isGpsAccurate).length;
 
     // Device breakdown
     let mobileCount = 0;
@@ -212,6 +218,7 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
       uniqueDevicesCount: uniqueDevicesSet.size,
       totalPlansCreated,
       liveActiveCount,
+      gpsCount,
       mobileCount,
       desktopCount,
       tabletCount,
@@ -476,8 +483,13 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
                       </span>
                     )}
                   </div>
-                  <div className="text-base font-black text-slate-900 dark:text-white mt-0.5">
-                    {toBengaliDigits(metrics.totalSessionsCount)} টি সেশন
+                  <div className="text-base font-black text-slate-900 dark:text-white mt-0.5 flex items-baseline gap-1.5 flex-wrap">
+                    <span>{toBengaliDigits(metrics.totalSessionsCount)} টি সেশন</span>
+                    {metrics.gpsCount > 0 && (
+                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                        ({toBengaliDigits(metrics.gpsCount)} জিপিএস ভেরিফাইড)
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -624,11 +636,73 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
                                 </div>
                               </div>
 
-                              {/* IP & Location */}
-                              <div className="mt-2.5 flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
+                              {/* Real-time GPS vs IP Location Box */}
+                              {sess.isGpsAccurate ? (
+                                <div className="mt-2.5 p-2.5 bg-emerald-50/80 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/60 text-left">
+                                  <div className="flex items-center justify-between gap-1">
+                                    <span className="flex items-center gap-1 text-[10px] font-extrabold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-md">
+                                      <Navigation className="w-2.5 h-2.5 text-emerald-600" />
+                                      🎯 রিয়েল-টাইম জিপিএস নিশ্চিত
+                                    </span>
+                                    {sess.accuracyMeters && (
+                                      <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
+                                        ±{toBengaliDigits(sess.accuracyMeters)} মি. নির্ভুল
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="mt-2 flex items-start gap-1.5">
+                                    <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+                                    <div className="min-w-0 flex-1">
+                                      <div className="text-xs font-black text-slate-900 dark:text-white leading-tight">
+                                        {sess.landmark ? (sess.landmark + ' সংলগ্ন') : (sess.precisePlace || sess.location)}
+                                      </div>
+                                      <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
+                                        {sess.precisePlace || sess.location}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Direct Google Maps link */}
+                                  <div className="mt-2 pt-2 border-t border-emerald-100 dark:border-emerald-800/40 flex items-center justify-between gap-2">
+                                    <span className="text-[10px] text-slate-500 font-mono">
+                                      {sess.latitude ? (sess.latitude.toFixed(4) + ', ' + (sess.longitude ? sess.longitude.toFixed(4) : '')) : ''}
+                                    </span>
+                                    <a
+                                      href={sess.googleMapsUrl || ('https://www.google.com/maps?q=' + sess.latitude + ',' + sess.longitude)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-300 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-teal-200 dark:border-teal-700 shadow-2xs hover:shadow-xs transition-all"
+                                    >
+                                      <span>গুগল ম্যাপে দেখুন</span>
+                                      <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="mt-2.5 p-2.5 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-200 dark:border-slate-700/60 text-left">
+                                  <div className="flex items-center justify-between gap-1">
+                                    <span className="flex items-center gap-1 text-[10px] font-bold text-slate-600 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-750 px-2 py-0.5 rounded-md">
+                                      🌐 আইপি প্রোভাইডার লোকেশন
+                                    </span>
+                                    {sess.isp && (
+                                      <span className="text-[10px] text-slate-400 truncate max-w-[150px]" title={sess.isp}>
+                                        {sess.isp}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <span className="truncate">{sess.location || sess.city || 'বাংলাদেশ'}</span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* IP & City */}
+                              <div className="mt-2 flex items-center justify-between text-xs font-mono text-slate-600 dark:text-slate-400">
+                                <div className="flex items-center gap-1.5">
                                   <Globe className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                                  <span>{sess.ip || 'আইপি প্রক্রিয়াধীন'}</span>
+                                  <span className="font-bold">{sess.ip || 'আইপি প্রক্রিয়াধীন'}</span>
                                   {sess.ip && sess.ip !== 'অজানা আইপি' && (
                                     <button
                                       type="button"
@@ -644,11 +718,9 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
                                     </button>
                                   )}
                                 </div>
-
-                                <div className="text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1 truncate max-w-[200px]">
-                                  <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
-                                  <span className="truncate">{sess.location || sess.city || 'বাংলাদেশ'}</span>
-                                </div>
+                                {sess.city && (
+                                  <span className="text-[10px] font-sans text-slate-400">{sess.city}</span>
+                                )}
                               </div>
 
                               {/* System Info */}
@@ -734,11 +806,28 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
                                 <Smartphone className="w-3 h-3 text-slate-400" />
                                 {item.deviceId || 'DEV-N/A'}
                               </span>
-                              {item.location && (
+                              {item.isGpsAccurate ? (
+                                <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                  <Navigation className="w-3 h-3 text-emerald-600" />
+                                  <span>{item.landmark ? (item.landmark + ' সংলগ্ন') : (item.precisePlace || item.location)}</span>
+                                </span>
+                              ) : item.location ? (
                                 <span className="flex items-center gap-1">
                                   <MapPin className="w-3 h-3 text-rose-500" />
                                   {item.location}
                                 </span>
+                              ) : null}
+
+                              {item.googleMapsUrl && (
+                                <a
+                                  href={item.googleMapsUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-teal-600 dark:text-teal-400 hover:underline"
+                                >
+                                  <span>গুগল ম্যাপ</span>
+                                  <ExternalLink className="w-2.5 h-2.5" />
+                                </a>
                               )}
                               {item.ip && (
                                 <span className="font-mono text-[10px]">
@@ -908,10 +997,30 @@ export const UsageHistoryModal: React.FC<UsageHistoryModalProps> = ({ isOpen, on
                   <h3 className="text-sm font-black text-slate-900 dark:text-white">
                     {previewPlan.topicTitle || 'সম্পূর্ণ কন্টেন্ট প্রিভিউ'}
                   </h3>
-                  <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                  <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5 flex-wrap">
                     <span>{previewPlan.gradeLevel}</span>
                     <span>•</span>
                     <span>{new Date(previewPlan.timestamp).toLocaleString('bn-BD')}</span>
+                    {previewPlan.isGpsAccurate && (
+                      <>
+                        <span>•</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                          <Navigation className="w-3 h-3" />
+                          {previewPlan.landmark ? (previewPlan.landmark + ' সংলগ্ন') : (previewPlan.precisePlace || previewPlan.location)}
+                        </span>
+                        {previewPlan.googleMapsUrl && (
+                          <a
+                            href={previewPlan.googleMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-teal-600 hover:underline flex items-center gap-0.5 font-bold"
+                          >
+                            <span>ম্যাপ</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
