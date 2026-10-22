@@ -48,6 +48,55 @@
         "updatedAt": { "type": "number", "description": "Unix timestamp of last update" }
       },
       "required": ["id", "userId", "title", "chaptersJson", "createdAt"]
+    },
+    "appSession": {
+      "title": "Application Visitor Session",
+      "description": "Client-side tracking session capturing IP, geo-location, device fingerprint, and active duration",
+      "type": "object",
+      "properties": {
+        "sessionId": { "type": "string", "description": "Session identifier" },
+        "deviceId": { "type": "string", "description": "Persistent device identifier" },
+        "ip": { "type": "string", "description": "Public IP address" },
+        "city": { "type": "string", "description": "City" },
+        "region": { "type": "string", "description": "Region/State" },
+        "country": { "type": "string", "description": "Country" },
+        "location": { "type": "string", "description": "Combined formatted location" },
+        "isp": { "type": "string", "description": "Internet Service Provider" },
+        "deviceType": { "type": "string", "enum": ["Mobile", "Tablet", "Desktop"], "description": "Device category" },
+        "browser": { "type": "string", "description": "Web browser name" },
+        "os": { "type": "string", "description": "Operating system" },
+        "screenResolution": { "type": "string", "description": "Screen resolution" },
+        "startedAt": { "type": "number", "description": "Session start timestamp" },
+        "lastPingAt": { "type": "number", "description": "Last heartbeat ping timestamp" },
+        "durationSeconds": { "type": "number", "description": "Active duration in seconds" },
+        "plansCreatedCount": { "type": "number", "description": "Count of items created in this session" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["sessionId", "deviceType", "startedAt", "lastPingAt", "durationSeconds"]
+    },
+    "globalLessonPlan": {
+      "title": "Global Lesson Plan Activity",
+      "description": "Global log of created lesson plans and exercises across all devices and sessions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique activity ID" },
+        "sessionId": { "type": "string", "description": "Associated session ID" },
+        "deviceId": { "type": "string", "description": "Originating device ID" },
+        "ip": { "type": "string", "description": "IP of creator" },
+        "location": { "type": "string", "description": "Location of creator" },
+        "gradeLevel": { "type": "string", "description": "Target grade level" },
+        "duration": { "type": "number", "description": "Duration or scope in days/minutes" },
+        "topicTitle": { "type": "string", "description": "Topic title" },
+        "chapterTitle": { "type": "string", "description": "Chapter title" },
+        "previewText": { "type": "string", "description": "Summary preview text" },
+        "fullContent": { "type": "string", "description": "Full generated text or JSON" },
+        "deviceType": { "type": "string", "description": "Device type" },
+        "os": { "type": "string", "description": "Operating system" },
+        "timestamp": { "type": "number", "description": "Creation timestamp in ms" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "sessionId", "gradeLevel", "previewText", "timestamp"]
     }
   },
   "firestore": {
@@ -62,6 +111,14 @@
     "/users/{userId}/books/{bookId}": {
       "schema": { "$ref": "#/entities/savedBook" },
       "description": "User's saved books library and table of contents"
+    },
+    "/app_sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/appSession" },
+      "description": "Publicly created anonymous visitor tracking sessions"
+    },
+    "/global_lesson_history/{historyId}": {
+      "schema": { "$ref": "#/entities/globalLessonPlan" },
+      "description": "All-time global record of lesson plans and exercises generated across the platform"
     }
   }
 }

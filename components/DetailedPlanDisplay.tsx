@@ -19,11 +19,13 @@ import {
   Layers,
   ArrowUpDown,
   Type,
-  FileText
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
 import { DetailedLessonPlan, LessonProcedureStep, PlanLengthMode } from '../types';
 import { MadrasahLogo } from './MadrasahLogo';
 import { SmartActivitySuite } from './SmartActivitySuite';
+import { ALL_GRADE_SAMPLE_PLANS, CLASS_1_ISLAM_SAMPLE_PLAN, FORMAL_OBSERVATION_02_PLAN } from '../constants/sampleDetailedPlan';
 
 interface DetailedPlanDisplayProps {
   plan: DetailedLessonPlan;
@@ -45,7 +47,7 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
     const className = raw.className || raw.lessonProfile?.gradeLevel || 'KG';
     const topic = raw.topic || raw.lessonProfile?.topicTitle || raw.lessonProfile?.title || 'Colors (Red, Blue, Yellow)';
     const subject = raw.subject || raw.lessonProfile?.subject || 'English (Literacy)';
-    const teacherName = raw.teacherName || 'Kabir Ustadh';
+    const teacherName = raw.teacherName !== undefined && raw.teacherName !== null ? raw.teacherName : '';
     const duration = raw.duration || raw.lessonProfile?.duration || '30 mins';
     
     let materials = raw.materials;
@@ -265,15 +267,15 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
   const labels = {
     docTitle: isAr ? 'خطة الدرس' : 'Lesson Plan',
     observationSubtitle: plan.observationTitle || 'Formal Observation-02',
-    classLabel: isAr ? 'الصف:' : (isBn ? 'শ্রেণি:' : 'Class:'),
-    topicLabel: isAr ? 'الموضوع:' : (isBn ? 'বিষয়/পাঠ:' : 'Topic:'),
-    subjectLabel: isAr ? 'المادة:' : (isBn ? 'বিষয় (Subject):' : 'Subject:'),
-    teacherLabel: isAr ? 'اسم المعلم:' : (isBn ? 'শিক্ষকের নাম:' : 'Teacher’s name:'),
-    durationLabel: isAr ? 'المدة:' : (isBn ? 'সময়কাল:' : 'Duration:'),
-    materialsLabel: isAr ? 'الوسائل التعليمية:' : (isBn ? 'উপকরণ:' : 'Materials:'),
-    learningObjectiveLabel: isAr ? 'الأهداف التعليمية:\n(Learning Objective)' : (isBn ? 'শিখনফল:\n(Learning Objective)' : 'Learning Objective:'),
-    successCriteriaLabel: isAr ? 'معايير النجاح:\n(Success Criteria)' : (isBn ? 'সাফল্যের মানদণ্ড:\n(Success Criteria)' : 'Success Criteria:'),
-    procedureSectionTitle: isAr ? 'خطوات سير الدرس (Lesson Procedure)' : 'Lesson Procedure',
+    classLabel: isAr ? 'الصف:' : 'Class:',
+    topicLabel: isAr ? 'الموضوع:' : 'Topic:',
+    subjectLabel: isAr ? 'المادة:' : 'Subject:',
+    teacherLabel: isAr ? 'اسم المعلم:' : "Teacher's name:",
+    durationLabel: isAr ? 'المدة:' : 'Duration:',
+    materialsLabel: isAr ? 'الوسائل التعليمية:' : 'Materials:',
+    learningObjectiveLabel: isAr ? 'الأهداف التعليمية:\n(Learning Objective)' : (isBn ? 'Learning Objective: (শিখন-উদ্দেশ্য)' : 'Learning Objective:'),
+    successCriteriaLabel: isAr ? 'معايير النجاح:\n(Success Criteria)' : (isBn ? 'Success criteria: (সাফল্যের মানদণ্ড)' : 'Success criteria:'),
+    procedureSectionTitle: isAr ? 'خطوات سير الدرس (Lesson Procedure)' : (isBn ? 'Lesson Procedure (পাঠ পরিচালনার ধারাবাহিকতা)' : 'Lesson Procedure'),
     stagesTimeHeader: isAr ? 'المرحلة / الزمن' : (isBn ? 'স্টেজ/সময়' : 'Stages/Time'),
     procedureHeader: isAr ? 'الإجراءات والأنشطة (Procedure)' : (isBn ? 'কার্যক্রম বিবরণ (Procedure)' : 'Procedure'),
     intHeader: 'Int',
@@ -632,6 +634,127 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
     const updated = plan.successCriteria.filter((_, i) => i !== idx);
     setPlan({ ...plan, successCriteria: updated });
   };
+
+  // Validation for Subject & Age Congruence (Preventing mismatched goals like English in Bangla class)
+  const isSubjectBangla = /বাংলা|bengali|bangla/i.test(plan.subject || '');
+  const isSubjectIslam = /ইসলাম|কুরআন|হাদিস|ফিকহ|আকাইদ|সিরাত|সালাত|তাজবীদ/i.test(plan.subject || '') || /সালাত|নামাজ|রোজা|অযু|কালেমা/i.test(plan.topic || '');
+  const isSubjectMath = /গণিত|math|অংক/i.test(plan.subject || '');
+  const isSubjectEnglish = /ইংরেজি|english/i.test(plan.subject || '');
+
+  // Detect inappropriate foreign language goal (e.g. English goal in Bangla/Islam/Math subject)
+  const allCriteriaAndObjective = `${plan.learningObjective} ${(plan.successCriteria || []).join(' ')}`;
+  const hasMismatchedEnglishGoal = !isSubjectEnglish && /(ইংরেজিতে বলতে|ইংরেজি বলতে|say in english|speak in english|ইংরেজিতে বাক্য|english vocabulary)/i.test(allCriteriaAndObjective);
+  const hasUnwantedQuizOrExitTicket = /(ডিজিটাল কুইজ|লাইভ লিডারবোর্ড|এক্সিট টিকিট|exit ticket|লিডারবোর্ড)/i.test(allCriteriaAndObjective + ' ' + plan.materials + ' ' + plan.procedures.map(p => p.activityTitle + ' ' + p.procedurePoints.join(' ')).join(' '));
+
+  const applyAgeAndSubjectCongruence = () => {
+    const top = plan.topic || 'আজকের পাঠ';
+
+    let newObjective = '';
+    let newCriteria: string[] = [];
+
+    const isClass1Or2 = /প্রথম|১ম|1st|class 1|কেজি|kg|প্লে|play|নার্সারি|nursery/i.test(plan.className || '');
+
+    if (isSubjectBangla && isClass1Or2) {
+      newObjective = `• পঠিত গল্প/কবিতাটি নিজের ভাষায় সংক্ষেপে বলতে পারবে।\n• ছবি দেখে গল্পের মূল চরিত্র শনাক্ত করতে পারবে ও বিষয়বস্তু বলতে পারবে।\n• পাঠের শিক্ষণীয় বিষয় সংক্ষেপে বলতে পারবে।`;
+      newCriteria = [
+        `আমি ছবি দেখে গল্পের মূল চরিত্র শনাক্ত করতে পারব এবং ঘটনাটি ধারাবাহিকভাবে বলতে পারব।`,
+        `আমি পাঠের মূল বিষয়বস্তু সম্পর্কে কমপক্ষে দু'টি বাক্য বলতে পারব।`,
+        `শিক্ষকের মৌখিক প্রশ্নের অধিকাংশ প্রশ্নের সঠিক উত্তর দিতে পারব।`
+      ];
+    } else if (isSubjectBangla) {
+      newObjective = `• পাঠ শেষে শিক্ষার্থীরা "${top}"-এর মূল ভাবার্থ অনুধাবন করতে পারবে।\n• প্রমিত ও শুদ্ধ বাংলা উচ্চারণে পাঠ্যাংশ সাবলীলভাবে পড়তে পারবে।\n• পাঠ সংশ্লিষ্ট নতুন শব্দের সঠিক অর্থ বলতে ও বাক্যে প্রয়োগ করতে পারবে।\n• পাঠের মূল শিক্ষা ও শিক্ষণীয় বিষয় নিজের ভাষায় গুছিয়ে বলতে পারবে।`;
+      newCriteria = [
+        `আমি "${top}" পাঠের মূল সারসংক্ষেপ ও ভাবার্থ নিজের ভাষায় গুছিয়ে বলতে পারব।`,
+        `আমি পাঠের নতুন ও কঠিন শব্দগুলোর অর্থ সঠিকভাবে বাক্যে প্রয়োগ করতে পারব।`,
+        `শিক্ষক পাঠের মূল বক্তব্য ও অনুধাবনমূলক প্রশ্ন করলে আমি স্পষ্ট বাংলায় নির্ভুল উত্তর দিতে পারব।`
+      ];
+    } else if (isSubjectMath) {
+      newObjective = `• পাঠ শেষে শিক্ষার্থীরা "${top}"-এর গাণিতিক সূত্র ও নিয়মাবলী স্পষ্টভাবে বুঝতে পারবে।\n• সমস্যার সমাধান ধাপে ধাপে নির্ভুলভাবে নির্ণয় করতে পারবে।\n• বাস্তব উদাহরণে এই গাণিতিক ধারণার প্রয়োগ ব্যাখ্যা করতে পারবে।`;
+      newCriteria = [
+        `আমি "${top}"-এর গাণিতিক নিয়মটি বুঝতে পেরেছি এবং উদাহরণ দিয়ে ব্যাখ্যা করতে পারব।`,
+        `আমি পাঠ্যবই ও বোর্ডের সমস্যাগুলো ধাপে ধাপে সমাধান করতে পারব।`,
+        `শিক্ষক নিয়ম পরিবর্তন করে নতুন অঙ্ক দিলে আমি তা নির্ভুলভাবে সম্পন্ন করতে পারব।`
+      ];
+    } else if (isSubjectIslam && isClass1Or2) {
+      newObjective = `• পঠিত গল্পটি নিজের ভাষায় সংক্ষেপে বলতে পারবে।\n• পাঠের মূল ফজিলত ও শিক্ষণীয় বিষয় সংক্ষেপে বলতে পারবে।\n• সুন্নাহ অনুযায়ী সঠিক আদব ও দ্বীনি আমল প্রদর্শন করতে পারবে।`;
+      newCriteria = [
+        `ছবি দেখে গল্পের মূল চরিত্র ও বিষয়বস্তু শনাক্ত করতে পারব এবং ঘটনাটি ধারাবাহিকভাবে বলতে পারব।`,
+        `পাঠের ফজিলত ও শিক্ষণীয় বিষয় সম্পর্কে কমপক্ষে দু'টি বাক্য বলতে পারব।`,
+        `শিক্ষকের করা মৌখিক প্রশ্নের অধিকাংশের সঠিক উত্তর দিতে পারব।`
+      ];
+    } else if (isSubjectIslam) {
+      newObjective = `• পাঠ শেষে শিক্ষার্থীরা "${top}"-এর মৌলিক বিধান ও গুরুত্ব সঠিকভাবে ব্যাখ্যা করতে পারবে।\n• সালাত ও দৈনন্দিন জীবনে সুন্নাহ পদ্ধতি অনুসারে আমল প্রদর্শন করতে পারবে।\n• পাঠের দ্বীনি ও নৈতিক শিক্ষা অনুধাবন করে বাস্তব জীবনে ধারণ করতে পারবে।`;
+      newCriteria = [
+        `আমি উস্তাদের উপস্থাপনা থেকে "${top}"-এর মূল বিধান ও শর্তাবলী চিহ্নিত করতে পারব।`,
+        `শিক্ষক পাঠ থেকে মৌখিক প্রশ্ন করলে আমি তাৎক্ষণিকভাবে সঠিক উত্তর নিজের ভাষায় বলতে পারব।`,
+        `আমি সুন্নাহ পদ্ধতি অনুসরণ করে সঠিক আমল প্রদর্শন করতে পারব।`
+      ];
+    } else if (isSubjectEnglish) {
+      newObjective = `• Students will be able to recognize and pronounce target vocabulary for "${top}" accurately.\n• Students will understand the key message and answer comprehension questions in simple English.`;
+      newCriteria = [
+        `I can pronounce and spell the target words accurately in English.`,
+        `I can use the new words in simple sentences to express my thoughts.`,
+        `I can answer teacher's comprehension questions with confidence.`
+      ];
+    } else {
+      newObjective = `• পাঠ শেষে শিক্ষার্থীরা "${top}"-এর মূল বিষয়বস্তু ও ধারণা স্পষ্টভাবে অনুধাবন করতে পারবে।\n• পাঠ থেকে অর্জিত জ্ঞান নিজের ভাষায় ব্যাখ্যা করতে পারবে।\n• দৈনন্দিন জীবনের সাথে এই বিষয়ের সম্পর্ক ও গুরুত্ব অনুধাবন করতে পারবে।`;
+      newCriteria = [
+        `আমি "${top}" পাঠের মূল বিষয়বস্তু নিজের ভাষায় গুছিয়ে বলতে পারব।`,
+        `আমি পাঠের মূল প্রশ্নগুলোর সঠিক ও স্পষ্ট উত্তর দিতে পারব।`,
+        `শিক্ষক ক্লাসে যাচাইমূলক প্রশ্ন করলে আমি সক্রিয়ভাবে অংশগ্রহণ করতে পারব।`
+      ];
+    }
+
+    // Clean up materials
+    const cleanedMaterials = plan.materials
+      .replace(/,?\s*ডিজিটাল কুইজ সফটওয়্যার/gi, '')
+      .replace(/,?\s*ডিজিটাল কুইজ/gi, '')
+      .replace(/,?\s*এক্সিট টিকিট/gi, '')
+      .replace(/,?\s*লাইভ লিডারবোর্ড/gi, '');
+
+    // Clean up procedures (especially Stage 5 review)
+    const cleanedProcedures = plan.procedures.map((p, pIdx) => {
+      let title = p.activityTitle;
+      let points = [...p.procedurePoints];
+      let cDo = p.childrenDo;
+      let tDoes = p.teacherDoes;
+
+      if (pIdx === plan.procedures.length - 1 || title.toLowerCase().includes('review') || title.includes('পর্যালোচনা') || title.includes('মূল্যায়ন')) {
+        title = isAr ? 'مراجعة الدرس وتقييم الفهم' : 'পাঠ পর্যালোচনা ও মূল্যায়ন (Review & Wrap-up)';
+        points = [
+          'শিক্ষক ক্লাসের শিক্ষার্থীদের আজকের পাঠের মূল বিষয়বস্তু থেকে সরাসরি বয়স ও বিষয়োপযোগী প্রশ্ন করে শিখন যাচাই করবেন।',
+          'শিক্ষার্থীরা স্বতঃস্ফূর্তভাবে হাত তুলে প্রশ্নের উত্তর দেবে এবং আজকের ক্লাসের মূল শিক্ষা নিজের ভাষায় বলবে।',
+          'শিক্ষক সামগ্রিক বোঝাপড়া যাচাই করে ইতিবাচক প্রশংসা ও উৎসাহ দেবেন এবং সুন্দর শিষ্টাচারের সাথে পাঠ সমাপ্ত করবেন।'
+        ];
+        cDo = 'প্রশ্নের উত্তর দেয়, মূল বিষয়বস্তু মুখে মুখে পুনরাবৃত্তি করে এবং সক্রিয়ভাবে পাঠের সমাপ্তিতে অংশ নেয়।';
+        tDoes = 'সংক্ষেপে পুরো পাঠের সারসংক্ষেপ টেনে দেন, শিক্ষার্থীদের সক্রিয় অংশগ্রহণের আন্তরিক প্রশংসা করেন ও দোয়া করেন।';
+      }
+
+      // Remove exit ticket or digital quiz from points
+      points = points.filter(pt => !/(এক্সিট টিকিট|ডিজিটাল কুইজ|লাইভ লিডারবোর্ড|exit ticket)/i.test(pt));
+      if (points.length === 0) {
+        points = ['শিক্ষক আজকের পাঠের মূল শিক্ষা শিক্ষার্থীদের মুখে মুখে যাচাই করবেন।'];
+      }
+
+      return {
+        ...p,
+        activityTitle: title,
+        procedurePoints: points,
+        childrenDo: cDo,
+        teacherDoes: tDoes
+      };
+    });
+
+    setPlan({
+      ...plan,
+      materials: cleanedMaterials,
+      learningObjective: newObjective,
+      successCriteria: newCriteria,
+      procedures: cleanedProcedures
+    });
+
+    showToast('বয়স ও বিষয় অনুযায়ী মূল্যায়ন এবং শিখনফল সফলভাবে সমন্বয় করা হয়েছে!');
+  };
   // Partition procedures for strict 3-page layout
   const getPageProcedures = () => {
     const procs = plan.procedures;
@@ -783,14 +906,26 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
                 : (isAr ? `النشاط: ${step.activityTitle}` : `Activity: ${step.activityTitle}`)}
             </div>
 
-            {/* Bullet instructions */}
-            <ul className={`list-disc list-outside ${isAr ? 'pr-4' : 'pl-4'} space-y-0.5 text-slate-900 leading-snug`}>
-              {step.procedurePoints.map((p, pIdx) => (
-                <li key={pIdx} className="text-[12.5px]">
-                  {p}
-                </li>
-              ))}
-            </ul>
+            {/* Bullet instructions with intelligent subheading support */}
+            <div className="space-y-1 text-slate-900 leading-snug">
+              {step.procedurePoints.map((p, pIdx) => {
+                const trimmed = p.trim();
+                const isHeading = /^(শিক্ষকের কাজ:|শিক্ষকের প্রশ্ন:|শিক্ষার্থীদের কার্যক্রম:|শিক্ষার্থীদের কাজ:|অনুশীলন:|কার্যক্রম \d+:|প্রশ্ন:|Activity|Teacher Does:|Teacher's Questions:|Students Do:|Questions:)/i.test(trimmed);
+                if (isHeading) {
+                  return (
+                    <div key={pIdx} className="font-bold text-slate-950 mt-2 first:mt-0 text-[12.5px] border-b border-slate-100 pb-0.5">
+                      {trimmed}
+                    </div>
+                  );
+                }
+                return (
+                  <div key={pIdx} className={`flex items-start gap-1.5 ${isAr ? 'pr-2.5' : 'pl-2.5'} text-[12.5px]`}>
+                    <span className="text-slate-900 font-bold shrink-0">•</span>
+                    <span className="whitespace-pre-line">{trimmed.replace(/^[•\-\*]\s*/, '')}</span>
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Children do & Teacher does */}
             <div className="mt-1.5 pt-1 space-y-0.5 text-[12.5px]">
@@ -1148,8 +1283,41 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
         </div>
       </div>
 
-
-      {/* Smart Pedagogical Activity Suite (when toggled) */}
+      {/* Official Master Plans Quick Switcher */}
+      <div className="bg-gradient-to-r from-teal-50 via-emerald-50 to-cyan-50 dark:from-teal-950/60 dark:via-slate-900/60 dark:to-emerald-950/60 border border-teal-200 dark:border-teal-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2.5 print:hidden text-xs shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="p-1.5 bg-teal-600 text-white rounded-lg">
+            <BookOpen className="w-3.5 h-3.5" />
+          </span>
+          <span className="font-bold text-slate-800 dark:text-slate-200">
+            {isAr ? 'خطط الدرس النموذجية الرسمية لمادراسَاتُس سُنَّة:' : 'মাদরাসাতুস সুন্নাহ আনুষ্ঠানিক শ্রেণি পর্যবেক্ষণ মাস্টার প্ল্যান:'}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {ALL_GRADE_SAMPLE_PLANS.map((item) => {
+            const isSelected = plan.className.includes(item.gradeTitle) || plan.topic.includes(item.topicTitle.split(' ')[0]);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setPlan(item.plan);
+                  showToast(`${item.gradeTitle} মাস্টার প্ল্যান লোড হয়েছে!`);
+                }}
+                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all border cursor-pointer flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-teal-700 text-white border-teal-800 shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                }`}
+                title={`${item.gradeTitle}: ${item.topicTitle}`}
+              >
+                <span>{item.gradeBadge}</span>
+                <span className="text-[11px] font-medium opacity-90 hidden sm:inline">({item.topicTitle.split('(')[0].trim()})</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
       {showActivitySuite && (
         <div className="my-4 print:hidden animate-in fade-in duration-300">
           <SmartActivitySuite
@@ -1179,6 +1347,39 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
           >
             <Plus className="w-3 h-3" />
             {isAr ? '+ إضافة مرحلة جديدة' : '+ নতুন ধাপ যোগ'}
+          </button>
+        </div>
+      )}
+
+      {/* Subject & Age Congruence Alert / One-click Alignment */}
+      {(hasMismatchedEnglishGoal || hasUnwantedQuizOrExitTicket) && (
+        <div className="bg-amber-50 dark:bg-amber-950/60 border-2 border-amber-400 dark:border-amber-700 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-950 dark:text-amber-100 shadow-sm print:hidden animate-in fade-in">
+          <div className="flex items-start gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-200 dark:bg-amber-900 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5 text-amber-700 dark:text-amber-300" />
+            </div>
+            <div>
+              <p className="font-extrabold text-sm text-amber-900 dark:text-amber-100 flex items-center gap-1.5">
+                <span>বিষয় ও বয়সের সাথে মূল্যায়ন সমন্বয় প্রয়োজন</span>
+                <span className="text-[10px] font-bold bg-amber-200/80 dark:bg-amber-800 text-amber-900 dark:text-amber-100 px-2 py-0.5 rounded-full">
+                  সতর্কবার্তা
+                </span>
+              </p>
+              <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed">
+                {hasMismatchedEnglishGoal 
+                  ? `${plan.subject} (${plan.className}) পাঠে বেমানান ইংরেজি/বিদেশি ভাষা বলার লক্ষ্য বা মূল্যায়ন পাওয়া গেছে।`
+                  : 'অপ্রয়োজনীয় ডিজিটাল কুইজ বা এক্সিট টিকিট পাওয়া গেছে।'} 
+                {' '}শিশুর বয়স ও বিষয়ের আসল দক্ষতার সাথে মিল রেখে নিখুঁত প্রমিত মূল্যায়ন সাজিয়ে নিন।
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={applyAgeAndSubjectCongruence}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black transition-all shadow-sm shrink-0 flex items-center justify-center gap-1.5 cursor-pointer text-xs"
+          >
+            <Sparkles className="w-4 h-4 text-amber-200" />
+            <span>✨ বয়স ও বিষয় অনুযায়ী ঠিক করুন</span>
           </button>
         </div>
       )}
@@ -1288,12 +1489,25 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
                     {isEditing ? (
                       <input 
                         type="text" 
-                        value={plan.teacherName} 
+                        value={plan.teacherName || ''} 
                         onChange={(e) => setPlan({ ...plan, teacherName: e.target.value })}
+                        placeholder="শিক্ষকের নাম (ঐচ্ছিক)"
                         className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
                       />
                     ) : (
-                      <span>{plan.teacherName}</span>
+                      (plan.teacherName && plan.teacherName.trim()) ? (
+                        <span>{plan.teacherName}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setIsEditing(true)}
+                          className="text-xs text-slate-400 hover:text-teal-700 italic flex items-center gap-1 group print:hidden transition-colors cursor-pointer"
+                          title="শিক্ষকের নাম যুক্ত করতে ক্লিক করুন"
+                        >
+                          <span>(নাম যুক্ত করতে ক্লিক করুন)</span>
+                          <Edit3 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
+                      )
                     )}
                   </div>
                 </td>
@@ -1333,7 +1547,43 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
                 </td>
               </tr>
 
-              {/* Row 4: Learning Objective */}
+              {/* Row 4: Date & Time (Official Madrasatus Sunnah format) */}
+              <tr className="border-b border-black">
+                <td className={`w-1/2 p-2 ${isAr ? 'border-l' : 'border-r'} border-black align-top bg-white`}>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-bold shrink-0">{isAr ? 'التاريخ:' : 'Date:'}</span>
+                    {isEditing ? (
+                      <input 
+                        type="text" 
+                        value={plan.date || ''} 
+                        placeholder="25-10-2026"
+                        onChange={(e) => setPlan({ ...plan, date: e.target.value })}
+                        className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
+                      />
+                    ) : (
+                      <span>{plan.date || '25-10-2026'}</span>
+                    )}
+                  </div>
+                </td>
+                <td className="w-1/2 p-2 align-top bg-white">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="font-bold shrink-0">{isAr ? 'الوقت:' : 'Time:'}</span>
+                    {isEditing ? (
+                      <input 
+                        type="text" 
+                        value={plan.time || ''} 
+                        placeholder="10:20-11:00 am"
+                        onChange={(e) => setPlan({ ...plan, time: e.target.value })}
+                        className="w-full bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded text-xs"
+                      />
+                    ) : (
+                      <span>{plan.time || '10:20-11:00 am'}</span>
+                    )}
+                  </div>
+                </td>
+              </tr>
+
+              {/* Row 5: Learning Objective */}
               <tr className="border-b border-black">
                 <td className={`w-[22%] p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top bg-white font-bold text-[13px] whitespace-pre-line`}>
                   {labels.learningObjectiveLabel}
@@ -1362,13 +1612,22 @@ export const DetailedPlanDisplay: React.FC<DetailedPlanDisplayProps> = ({
               {/* Row 5: Success criteria */}
               <tr>
                 <td className={`w-[22%] p-2.5 ${isAr ? 'border-l' : 'border-r'} border-black align-top bg-white font-bold text-[13px] whitespace-pre-line`}>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1.5">
                     <span>{labels.successCriteriaLabel}</span>
+                    <button
+                      type="button"
+                      onClick={applyAgeAndSubjectCongruence}
+                      className="text-[10px] text-teal-800 dark:text-teal-300 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800 font-bold flex items-center gap-1 transition-all print:hidden self-start"
+                      title="বয়স ও বিষয় অনুপাতে আদর্শ মূল্যায়ন সেট করুন"
+                    >
+                      <Sparkles className="w-2.5 h-2.5 text-teal-600" />
+                      <span>{isAr ? 'معايير ملائمة' : 'বয়স ও বিষয়োপযোগী'}</span>
+                    </button>
                     {isEditing && (
                       <button
                         type="button"
                         onClick={handleAddSuccessCriteria}
-                        className="text-[11px] text-teal-700 hover:underline font-bold self-start"
+                        className="text-[11px] text-teal-700 hover:underline font-bold self-start print:hidden"
                       >
                         {labels.addCriteria}
                       </button>

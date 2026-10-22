@@ -965,7 +965,7 @@ export const generateDetailedPlanClient = async (
   const effectiveClass = request.gradeLevel || "KG";
   const effectiveSubject = request.subject || "English (Literacy)";
   const effectiveTopic = request.topicTitle || "Colors (Red, Blue, Yellow)";
-  const effectiveTeacher = request.teacherName || "Kabir Ustadh";
+  const effectiveTeacher = (request.teacherName && typeof request.teacherName === 'string') ? request.teacherName.trim() : "";
   const effectivePlanLength: 'compact' | 'standard_3page' | 'extended' = request.planLength || 'standard_3page';
 
   const pageRangeDesc = (request.pageRanges && Array.isArray(request.pageRanges) && request.pageRanges.length > 0)
@@ -1053,29 +1053,51 @@ export const generateDetailedPlanClient = async (
     ${planLengthRule}
 
     ========================================================================================================
-    **বুদ্ধিমত্তা সম্পন্ন শিশুতোষ অ্যাক্টিভিটি ও শিখন যাচাই নীতি (INTELLIGENT AGE & TOPIC-ADAPTIVE ACTIVITIES):**
+    **বিষয় ও বয়সোপযোগী নিখুঁত মূল্যায়ন ও পেডাগোজিক্যাল শিখন নীতিমালা (STRICT AGE & SUBJECT-CONGRUENT EVALUATION):**
     ========================================================================================================
-    - অ্যাপের কৃত্রিম বুদ্ধিমত্তা নিজে থেকে বিষয় (${effectiveSubject}), টপিক (${effectiveTopic}) এবং শিশুর শ্রেণি ও বয়স (${effectiveClass}) বিশ্লেষণ করে সবচেয়ে উপযুক্ত, বৈচিত্র্যময় ও সুন্দর কার্যক্রম (Activities) নির্বাচন করবে।
-    - প্রতিটি ধাপে কমপক্ষে ২-৩টি আকর্ষণীয় ও আধুনিক শিক্ষাদান পদ্ধতি অন্তর্ভুক্ত করতে হবে:
-      ১. **মাখরাজ / তাজবীদ / উচ্চারণ পাঠ হলে:**
-         • 'মাখরাজ আয়না ও বাতাস পরীক্ষা' (Makhraj Mirror & Air Flow Check)
-         • 'নাকের বাঁশিতে গুন্নাহ কম্পন অনুভব' (Gunnag Vibration Test)
-         • 'সাউন্ড ও ইকো ড্রিল' (Sound & Echo Drill)
-         • 'হরফ বাছাই ও রঙিন কার্ড ঝুড়ি খেলা' (Letter Sorting Activity)
-      ২. **আরবি / ইংরেজি শব্দভাণ্ডার বা মুখস্থকরণ পাঠ হলে:**
-         • 'রহস্যের থলে / ম্যাজিক ব্যাগ' (Mystery Box / Magic Bag - বাস্তব বস্তু স্পর্শ করে নাম বলা)
-         • 'টিপিআর অঙ্গভঙ্গি ও মূকাভিনয়' (Action Miming & Total Physical Response)
-         • 'বোর্ড ফ্ল্যাশকার্ড দ্রুত স্পর্শ দৌড়' (Flyswatter / Slap the Card Board Race)
-         • 'কোন বস্তুটি হারিয়ে গেল?' (What's Missing? Visual Memory Game)
-      ৩. **কুরআন তিলাওয়াত / হিফজ পাঠ হলে:**
-         • 'তিলাওয়াত রিলে ট্রেন' (Sequential Ayah Recitation Relay)
-         • 'আয়াত পাজল জোড়া লাগানো' (Ayah Sequence Puzzle)
-      ৪. **বাচ্চার শেখা নিশ্চিত যাচাই ও ফিডব্যাক (Formative Assessment & Checking Understanding):**
-         • 'এক্সিট টিকিট' (Exit Ticket / Exit Question - ক্লাস শেষের আগে প্রতিটি বাচ্চার শেখা যাচাই)
-         • 'ট্রাফিক লাইট বা থাম্বস আপ-ডাউন' (Traffic Light Comprehension Check)
-         • 'ফাস্ট ফিঙ্গার কুইজ' (Fast Finger Drill)
-    - শিশুদের বয়স ও বিবেক-বুদ্ধির স্তর অনুযায়ী পদ্ধতি সহজ বা উন্নত হবে।
-    - শিক্ষক কার্যক্রমে (teacherDoes) এবং শিক্ষার্থীদের কার্যক্রমে (childrenDo) স্পষ্ট, প্রাণবন্ত ও বাস্তবসম্মত নির্দেশনা লিখুন।
+    ★ অতীব গুরুত্বপূর্ণ ও কঠোর সতর্কবার্তা (ZERO MISMATCH / NO FOREIGN GOALS):
+       - কোনো বিষয়ের মূল্যায়ন বা শিখনফলে ভিন্ন বিষয়ের কোনো অপ্রাসঙ্গিক দক্ষতা যুক্ত করা সম্পূর্ণ বেমানান ও কঠোরভাবে নিষিদ্ধ!
+       - যেমন: পঞ্চম শ্রেণির বাংলা টপিক হলে শিখনফল বা মূল্যায়নে ভুলেও "ইংরেজিতে বলতে পারা", "English speaking" বা ভিন্ন ভাষার কোনো কথা আনা যাবে না।
+       - প্রতিটি বিষয়ের শিখনফল ও মূল্যায়ন ১০০% সেই বিষয় (${effectiveSubject}) এবং নির্ধারিত পাঠের (${effectiveTopic}) মূল বিষয়বস্তু ও বয়সের সাথে সংগতিপূর্ণ হতে হবে।
+
+    ★ বিষয়ভিত্তিক শিখন ও মূল্যায়ন নির্দেশিকা (Subject-Specific Assessment):
+       ১. **বাংলা বিষয় হলে (Bangla):**
+          • কী শেখার আছে: পাঠ্যাংশের মূল ভাবার্থ অনুধাবন, প্রমিত ও শুদ্ধ বাংলা উচ্চারণ, পাঠ্য সংশ্লিষ্ট নতুন শব্দের অর্থ ও বাক্যে প্রয়োগ, মূল শিক্ষা নিজের ভাষায় গুছিয়ে বলা।
+          • কীভাবে জাজ/মূল্যায়ন করবেন: শিক্ষক ক্লাসে পাঠ থেকে সরাসরি অনুধাবনমূলক প্রশ্ন করবেন এবং শিক্ষার্থীরা নিজেদের ভাষায় স্পষ্ট বাংলায় উত্তর দেবে; বোর্ডে নতুন শব্দের অর্থ বা বাক্য লিখে দেখাবে; পাঠের নৈতিক বা ব্যবহারিক শিক্ষা নিজের ভাষায় বলবে।
+       ২. **ইংরেজি বিষয় হলে (English):**
+          • কী শেখার আছে: Age-appropriate English vocabulary, spelling, correct pronunciation, grammar patterns, simple oral speaking or reading comprehension.
+          • কীভাবে জাজ/মূল্যায়ন করবেন: Teacher asks simple targeted English questions; students answer orally or demonstrate vocabulary matching and sentence use.
+       ৩. **গণিত বিষয় হলে (Mathematics):**
+          • কী শেখার আছে: গাণিতিক সূত্র, নিয়ম বা পদ্ধতির স্পষ্ট ধারণা এবং নির্ভুল হিসাব/সমস্যা সমাধান।
+          • কীভাবে জাজ/মূল্যায়ন করবেন: বোর্ডে বা খাতায় ছোট গাণিতিক সমস্যা সমাধান করানো, পদ্ধতির কারণ ব্যাখ্যা করতে পারা।
+       ৪. **ইসলামিক স্টাডিজ / কুরআন / হাদিস / ফিকহ / সিরাত হলে:**
+          • কী শেখার আছে: বিশুদ্ধ মাখরাজ ও তিলাওয়াত, মাসআলার সঠিক বিধান ও শর্তাবলী জানা, সুন্নাহ অনুযায়ী সঠিক আমল প্রদর্শন, হাদিস বা ঘটনার শিক্ষা নিজের জীবনে বাস্তবায়ন।
+          • কীভাবে জাজ/মূল্যায়ন করবেন: মুখে মুখে মাসআলা জিজ্ঞাসা করা, প্র্যাক্টিক্যাল ডেমোস্ট্রেশন (যেমন: সালাতের রুকন বা অযু প্রদর্শন), নৈতিক শিক্ষা নিজের ভাষায় বলা।
+       ৫. **বিজ্ঞান / সমাজ / পরিবেশ / সাধারণ জ্ঞান হলে:**
+          • কী শেখার আছে: বৈজ্ঞানিক তথ্য, কারণ ও ফলাফলের সম্পর্ক, বাস্তব পরিবেশের সাথে সংযোগ।
+          • কীভাবে জাজ/মূল্যায়ন করবেন: কারণ ব্যাখ্যা করতে বলা, উদাহরণ দেওয়া, বাস্তব জীবনে এর গুরুত্ব বর্ণনা করা।
+
+    ★ শ্রেণি ও বয়সোপযোগী মূল্যায়নের স্তর (Cognitive Level by Grade/Age):
+       • **শিশু শ্রেণি / প্লে / নার্সারি / কেজি (বয়স ৪-৬ বছর):**
+         - জাজ করার পদ্ধতি: ছবি বা চার্ট দেখিয়ে মুখে মুখে ১-২ শব্দের সহজ উত্তর নেওয়া, আঙুল দিয়ে সঠিক বস্তু/হরফ নির্দেশ করা, ছড়া বা অঙ্গভঙ্গির মাধ্যমে পুনরাবৃত্তি। (কখনোই বড় লেখা বা কঠিন প্রশ্ন নয়)।
+       • **১ম ও ২য় শ্রেণি (বয়স ৬-৮ বছর - যেমন মাদরাসাতুস সুন্নাহ ১ম শ্রেণির "দানে ধন বাড়ে" পাঠ পরিকল্পনা):**
+         - সাফল্যের মানদণ্ড (Success Criteria): অত্যন্ত বাস্তবসম্মত ও পরিমাপযোগ্য— ১) ছবি দেখে গল্পের/পাঠের মূল চরিত্র শনাক্ত ও ধারাবাহিকভাবে বলা; ২) মূল বিষয়বস্তু সম্পর্কে কমপক্ষে দু'টি বাক্য বলতে পারা; ৩) পাঠ থেকে অন্তত একটি শিক্ষণীয় বিষয় বলা; ৪) ৫টি মৌখিক প্রশ্নের কমপক্ষে ৪টি প্রশ্নের সঠিক উত্তর দেওয়া।
+         - Lead in / Warm-up: "শিক্ষকের কাজ" ও সুস্পষ্ট "শিক্ষকের প্রশ্ন:" (শ্রেণিকক্ষে শিক্ষক সরাসরি যে ১-৪টি প্রশ্ন জিজ্ঞাসা করে পূর্বজ্ঞান যাচাই করবেন) এবং "শিক্ষার্থীদের কার্যক্রম"।
+         - Main Activity: "শিক্ষকের কাজ" (সহজ ভাষায় উপস্থাপন, শিক্ষণীয় দিক আলোচনা, ছবি/বোর্ডের মাধ্যমে গুরুত্বপূর্ণ অংশ আয়ত্ত করানো) এবং "শিক্ষার্থীদের কাজ"।
+         - Practice / Activity: বহুস্তরীয় বাস্তবমুখী অনুশীলন—
+           • কার্যক্রম ১: ছবি/দৃশ্য দেখে বলা (Visual recall)
+           • কার্যক্রম ২: কার্ড/উপকরণ দলবদ্ধভাবে ধারাবাহিকভাবে সাজানো (Sequencing)
+           • কার্যক্রম ৩: ওয়ার্কশিট (সঠিক উত্তরে টিক চিহ্ন ও সত্য-মিথ্যা নির্ণয়)
+           • শিক্ষকের বিশেষ পর্যবেক্ষণ: "দুর্বল শিক্ষার্থীদের কাছে গিয়ে অতিরিক্ত সহায়তা প্রদান ও ব্যক্তিগত যত্ন নেওয়া"।
+         - Review & Assessment: পাঠের মূল তথ্য ও চরিত্র থেকে সরাসরি ৩-৪টি সুস্পষ্ট মৌখিক প্রশ্ন (প্রশ্ন:) যার মাধ্যমে ক্লাসের তাৎক্ষণিক শিখন যাচাই করা হবে।
+       • **৩য়, ৪র্থ ও ৫ম শ্রেণি (বয়স ৮-১১ বছর - বিশেষ গুরুত্ব):**
+         - জাজ করার পদ্ধতি: পাঠের বিষয়বস্তু বুঝে শিক্ষার্থী নিজের ভাষায় সম্পূর্ণ বাক্য গঠন করে বলবে, পাঠের মূল শিক্ষা বা মেসেজ কী তা গুছিয়ে প্রকাশ করবে, শিক্ষক পাঠ্যবই সংশ্লিষ্ট অনুধাবনমূলক প্রশ্ন করে গভীর বোঝাপড়া নিশ্চিত করবেন।
+       • **৬ষ্ঠ থেকে ১০ম শ্রেণি (বয়স ১১-১৬ বছর):**
+         - জাজ করার পদ্ধতি: বিশ্লেষণধর্মী উত্তর, তুলনামূলক ব্যাখ্যা, যুক্তি ও প্রমাণের মাধ্যমে সমাধান এবং বাস্তব জীবনের সাথে সংযোগ স্থাপন।
+
+    ★ কার্যক্রম ও মূল্যায়নের ক্লাসরুম রুলস (Classroom Assessment Rules):
+       - কোনো ডিজিটাল কুইজ, লিডারবোর্ড বা এক্সিট টিকিট নয় — ক্লাসের স্বাভাবিক পেডাগোজিক্যাল প্রশ্নোত্তর ও সক্রিয় অংশগ্রহণের মাধ্যমে মূল্যায়ন সম্পন্ন হবে।
+       - শিক্ষক ক্লাসের শিক্ষার্থীদের আজকের পাঠের মূল বিষয়বস্তু থেকে সরাসরি প্রশ্ন করে শিখন যাচাই করবেন, শিক্ষার্থীরা নিজের ভাষায় মূল বক্তব্য বলবে এবং শিক্ষক ইতিবাচক প্রশংসা ও সংশোধন দিয়ে ক্লাস সমাপ্ত করবেন।
     ========================================================================================================
 
     **Input Details:**
@@ -1093,7 +1115,7 @@ export const generateDetailedPlanClient = async (
     Output JSON with exact schema:
     {
       "language": "${effectiveLang}",
-      "observationTitle": "Formal Observation-02",
+      "observationTitle": "Lesson Plan",
       "institutionName": "মাদরাসাতুস সুন্নাহ",
       "className": "${effectiveClass}",
       "topic": "${effectiveTopic}${planDays > 1 ? ` (${planDays}-Day Plan)` : ''}",
@@ -1101,11 +1123,13 @@ export const generateDetailedPlanClient = async (
       "teacherName": "${effectiveTeacher}",
       "duration": "${duration} mins${planDays > 1 ? ` × ${planDays} Days` : ''}",
       "materials": "Materials in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
-      "learningObjective": "Learning objective in ${effectiveLang === 'bn' ? 'Bengali' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
+      "date": "25-10-2026",
+      "time": "10:20-11:00 am",
+      "learningObjective": "Subject and age-appropriate learning objective in ${effectiveLang === 'bn' ? 'Bengali (e.g. পাঠ শেষে শিক্ষার্থীরা— ...)' : effectiveLang === 'ar' ? 'Arabic' : 'English'}",
       "successCriteria": [
-        "1. Criterion 1",
-        "2. Criterion 2",
-        "3. Criterion 3"
+        "1. Criterion 1 (in ${effectiveLang === 'bn' ? 'Bengali starting with আমি পারি:' : 'target language'}, strictly matching subject ${effectiveSubject} and class ${effectiveClass})",
+        "2. Criterion 2 (in ${effectiveLang === 'bn' ? 'Bengali starting with আমি পারি:' : 'target language'}, strictly matching subject ${effectiveSubject} and class ${effectiveClass})",
+        "3. Criterion 3 (in ${effectiveLang === 'bn' ? 'Bengali starting with আমি পারি:' : 'target language'}, strictly matching subject ${effectiveSubject} and class ${effectiveClass})"
       ],
       "procedures": [
         {

@@ -14,7 +14,8 @@ import {
   Layers,
   Sparkles,
   Tag,
-  Globe
+  Globe,
+  ShieldCheck
 } from 'lucide-react';
 import { HistoryItem, SavedBook } from '../types';
 
@@ -28,6 +29,7 @@ interface SidebarProps {
   onClearHistory?: () => void;
   onSelectBook?: (book: SavedBook) => void;
   onDeleteBook?: (bookId: string) => void;
+  onOpenUsageHistory?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -39,7 +41,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onDeleteHistory, 
   onClearHistory,
   onSelectBook,
-  onDeleteBook
+  onDeleteBook,
+  onOpenUsageHistory
 }) => {
   const [activeTab, setActiveTab] = useState<'history' | 'books'>('books');
   const [apiKey, setApiKey] = useState('');
@@ -192,6 +195,24 @@ const Sidebar: React.FC<SidebarProps> = ({
               <span>কাজের ইতিহাস ({history.length})</span>
             </button>
           </div>
+
+          {onOpenUsageHistory && (
+            <button
+              type="button"
+              onClick={() => {
+                onOpenUsageHistory();
+                onClose();
+              }}
+              className="mt-2 w-full py-1.5 px-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/70 dark:hover:bg-teal-900 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200 text-xs font-bold transition-all flex items-center justify-between shadow-2xs cursor-pointer"
+              title="ব্যবহার পরিসংখ্যান, ডিভাইস ও আইপি হিস্ট্রি (PIN সুরক্ষিত)"
+            >
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                <span>ব্যবহার পরিসংখ্যান ও আইপি হিস্ট্রি</span>
+              </div>
+              <span className="text-[10px] px-1.5 py-0.2 bg-teal-200/80 dark:bg-teal-800 rounded font-mono font-bold">PIN</span>
+            </button>
+          )}
         </div>
 
         {/* Tab 1: Hierarchical Class & Subject Book Menu */}

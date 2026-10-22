@@ -24,6 +24,20 @@ service cloud.firestore {
       allow read: if true;
     }
 
+    // সেশন ট্র্যাকিং (পাবলিকলি ক্রিয়েট ও আপডেট সম্ভব)
+    match /app_sessions/{sessionId} {
+      allow read: if true;
+      allow create, update: if isValidId(sessionId);
+      allow delete: if false;
+    }
+
+    // গ্লোবাল হিস্ট্রি লগ
+    match /global_lesson_history/{historyId} {
+      allow read: if true;
+      allow create: if isValidId(historyId);
+      allow update, delete: if false;
+    }
+
     // User profile document
     match /users/{userId} {
       allow read: if isOwner(userId);
@@ -51,4 +65,3 @@ service cloud.firestore {
     }
   }
 }
-

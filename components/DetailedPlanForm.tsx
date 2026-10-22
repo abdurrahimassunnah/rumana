@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { DetailedPlanRequest, TOCChapter, TOCTopic, SavedBook, PlanLengthMode } from '../types';
 import { MADRASAH_CLASS_5_TOC } from '../constants/madrasahBookData';
+import { ALL_GRADE_SAMPLE_PLANS } from '../constants/sampleDetailedPlan';
 import { TOCSelector } from './TOCSelector';
 import StoredFilesManager from './StoredFilesManager';
 import PageRangeSelector from './PageRangeSelector';
@@ -35,8 +36,31 @@ interface DetailedPlanFormProps {
   extractionProgress?: string;
   onSubmit: (request: DetailedPlanRequest) => void;
   isLoading: boolean;
-  onSelectSample?: () => void;
+  onSelectSample?: (sampleType?: 'kg' | 'class1' | 'class2' | 'class3' | 'class4' | 'class5' | string) => void;
 }
+
+export const inferSubjectFromTopic = (topicStr: string = '', chapterStr: string = ''): string => {
+  const combined = `${topicStr} ${chapterStr}`.toLowerCase();
+  if (/তালহা|সাহাবী|সাহাবি|উমর|আবু বকর|উসমান|আলী|আয়েশা|খাদিজা|উহুদ|বদর|হিজরত|রাসূল|নবী|সিরাত|আকাইদ|ঈমান|সালাত|নামাজ|রোজা|হজ্ব|যাকাত|দোয়া|হাদিস|কুরআন|সূরা|মাখরাজ|তাজবীদ|ইসলাম|আখলাক|মুয়ামালাত/i.test(combined)) {
+    return 'ইসলামিক স্টাডিজ';
+  }
+  if (/বাংলা|গল্প|কবিতা|শব্দার্থ|ব্যাকরণ|অনুচ্ছেদ|বিরামচিহ্ন|যুক্তবর্ণ|সন্ধি|সমাস|রচনা|ভাবার্থ/i.test(combined)) {
+    return 'বাংলা';
+  }
+  if (/গণিত|অঙ্ক|যোগ|বিয়োগ|গুণ|ভাগ|ভগ্নাংশ|জ্যামিতি|পরিমাপ|শতকরা|ধারাপাত|সংখ্যা/i.test(combined)) {
+    return 'গণিত';
+  }
+  if (/english|literacy|phonics|vocabulary|grammar|alphabet|tpr/i.test(combined)) {
+    return 'English';
+  }
+  if (/আরবি|لغة|عربي|হরফ|নাহু|সরফ/i.test(combined)) {
+    return 'আরবি ভাষা';
+  }
+  if (/বিজ্ঞান|পরিবেশ|স্বাস্থ্য|উদ্ভিদ|প্রাণী|পদার্থ/i.test(combined)) {
+    return 'বিজ্ঞান';
+  }
+  return 'ইসলামিক স্টাডিজ';
+};
 
 export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
   uploadedChapters = null,
@@ -52,10 +76,10 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
   isLoading,
   onSelectSample
 }) => {
-  const [selectedGrade, setSelectedGrade] = useState<string>('KG');
+  const [selectedGrade, setSelectedGrade] = useState<string>('৩য় শ্রেণি (Class 3)');
   const [planLanguage, setPlanLanguage] = useState<'bn' | 'en' | 'ar'>('bn');
-  const [subject, setSubject] = useState<string>('English (Literacy)');
-  const [teacherName, setTeacherName] = useState<string>('Kabir Ustadh');
+  const [subject, setSubject] = useState<string>('ইসলামিক স্টাডিজ');
+  const [teacherName, setTeacherName] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'toc' | 'pages' | 'custom' | 'upload'>('toc');
   
   // Page Ranges state
@@ -136,6 +160,11 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
 
     const primaryTopic = topics[0];
     setSelectedTopic(primaryTopic);
+
+    // Auto-infer subject based on topic content
+    const effectiveChapterTitle = chapter?.title || customChapterTitle || '';
+    const inferredSubject = inferSubjectFromTopic(primaryTopic.title, effectiveChapterTitle);
+    setSubject(inferredSubject);
 
     if (topics.length === 1) {
       setCustomTopicTitle(`${primaryTopic.topicNumber ? `${primaryTopic.topicNumber}. ` : ''}${primaryTopic.title}`);
@@ -313,8 +342,8 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
       topicTitle,
       chapterTitle,
       gradeLevel: selectedGrade,
-      subject: subject || (activeTab === 'custom' ? 'আরবি ভাষা ও শব্দভাণ্ডার' : 'English (Literacy)'),
-      teacherName: teacherName || 'Kabir Ustadh',
+      subject: (subject && subject.trim()) || inferSubjectFromTopic(topicTitle, chapterTitle),
+      teacherName: (teacherName && teacherName.trim()) ? teacherName.trim() : '',
       totalDurationMinutes: totalDuration,
       planDays: planDays,
       planLength: planLength,
@@ -352,15 +381,47 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
         </div>
 
         {onSelectSample && (
-          <button
-            type="button"
-            onClick={onSelectSample}
-            className="px-3.5 py-2 text-xs font-bold text-teal-800 dark:text-teal-200 bg-teal-100/70 hover:bg-teal-200 dark:bg-teal-950/60 dark:hover:bg-teal-900 rounded-xl border border-teal-300 dark:border-teal-800 transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0 shadow-sm cursor-pointer"
-            title="ইউনিক আনুষ্ঠানিক শ্রেণি পর্যবেক্ষণ (Formal Observation) মাস্টার প্ল্যান লোড করুন"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-teal-700 dark:text-teal-400" />
-            <span>🌟 আনুষ্ঠানিক পর্যবেক্ষণ মাস্টার প্ল্যান দেখুন</span>
-          </button>
+          <div className="w-full mt-4 pt-4 border-t border-slate-200/90 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2.5">
+              <div className="flex items-center gap-1.5">
+                <span className="p-1 bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 rounded-lg">
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                </span>
+                <span className="text-xs font-black uppercase tracking-wider text-teal-900 dark:text-teal-300">
+                  নমুনা লেসন প্ল্যান শোকেস (কেজি হতে ৫ম শ্রেণি পর্যন্ত)
+                </span>
+              </div>
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                শ্রেণি অনুযায়ী ক্লিক করে হুবহু পূর্ণাঙ্গ মাস্টার প্ল্যান লোড করুন
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {ALL_GRADE_SAMPLE_PLANS.map((sample) => (
+                <button
+                  key={sample.id}
+                  type="button"
+                  onClick={() => onSelectSample(sample.id)}
+                  className="p-2.5 bg-gradient-to-br from-white to-teal-50/30 dark:from-slate-800/90 dark:to-slate-900/90 border border-teal-200/90 dark:border-teal-800/60 hover:border-teal-500 dark:hover:border-teal-400 hover:shadow-xs rounded-xl text-left transition-all group cursor-pointer flex flex-col justify-between"
+                  title={`${sample.gradeTitle}: ${sample.topicTitle}`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-950/80 text-teal-900 dark:text-teal-300 group-hover:bg-teal-700 group-hover:text-white transition-colors">
+                        {sample.gradeBadge}
+                      </span>
+                    </div>
+                    <div className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors line-clamp-1">
+                      {sample.topicTitle}
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-1 font-medium">
+                    {sample.subject}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -465,22 +526,46 @@ export const DetailedPlanForm: React.FC<DetailedPlanFormProps> = ({
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="e.g. English (Literacy)"
+              placeholder="e.g. ইসলামিক স্টাডিজ / বাংলা / English"
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
+            {/* Quick Subject Selectors */}
+            <div className="flex flex-wrap items-center gap-1 mt-1.5">
+              {[
+                { name: 'ইসলামিক স্টাডিজ', label: '🕌 ইসলাম' },
+                { name: 'বাংলা', label: '🇧🇩 বাংলা' },
+                { name: 'English', label: '🇬🇧 English' },
+                { name: 'গণিত', label: '📐 গণিত' },
+                { name: 'আরবি ভাষা', label: '🇸🇦 আরবি' },
+                { name: 'বিজ্ঞান', label: '🔬 বিজ্ঞান' }
+              ].map((s) => (
+                <button
+                  key={s.name}
+                  type="button"
+                  onClick={() => setSubject(s.name)}
+                  className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold transition-all cursor-pointer ${
+                    subject === s.name
+                      ? 'bg-teal-700 text-white shadow-2xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Teacher's Name */}
           <div>
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
               <UserCheck className="w-4 h-4 text-teal-600" />
-              Teacher’s name / শিক্ষক
+              Teacher’s name / শিক্ষক (ঐচ্ছিক)
             </label>
             <input
               type="text"
               value={teacherName}
               onChange={(e) => setTeacherName(e.target.value)}
-              placeholder="e.g. Kabir Ustadh"
+              placeholder="শিক্ষকের নাম লিখুন (ঐচ্ছিক — খালি রাখতে পারেন)"
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
           </div>

@@ -311,6 +311,8 @@ export interface DetailedLessonPlan {
   teacherName: string; // e.g. "Kabir Ustadh"
   duration: string; // e.g. "30 mins"
   materials: string; // e.g. "Color flashcards, red/blue/yellow toys, crayons, worksheet."
+  date?: string; // e.g. "25-10-2026"
+  time?: string; // e.g. "10:20-11:00 am"
 
   // Learning Objective (Exact match)
   learningObjective: string; // e.g. "By the end of the lesson, children will be able to identify red, blue, and yellow objects by pointing and naming them."

@@ -47,8 +47,7 @@ import {
 } from './services/geminiService';
 import { saveStoredFile, deleteStoredFile } from './services/dbService';
 import { SAMPLE_DEFAULT_EXERCISE } from './constants/madrasahBookData';
-import { DEFAULT_SAMPLE_LESSON_PLAN } from './constants/defaultSamplePlan';
-import { EXACT_SAMPLE_DETAILED_PLAN } from './constants/sampleDetailedPlan';
+import { EXACT_SAMPLE_DETAILED_PLAN, CLASS_1_ISLAM_SAMPLE_PLAN, FORMAL_OBSERVATION_02_PLAN, ALL_GRADE_SAMPLE_PLANS } from './constants/sampleDetailedPlan';
 import { 
   auth, 
   loginWithGoogle, 
@@ -62,6 +61,8 @@ import {
   deleteBookFromFirestore,
   testConnection 
 } from './services/firebase';
+import { startSessionTracking, logGlobalLessonPlan } from './services/analyticsService';
+import { UsageHistoryModal } from './components/UsageHistoryModal';
 
 const loadPdfJs = (): Promise<any> => {
   return new Promise((resolve, reject) => {
@@ -123,6 +124,7 @@ const App: React.FC = () => {
   const [prefilledTopics, setPrefilledTopics] = useState<SelectedTopicItem[] | null>(null);
   const [prefilledContent, setPrefilledContent] = useState<string>('');
   const [prefilledPdfFile, setPrefilledPdfFile] = useState<File | null>(null);
+  const [isUsageHistoryOpen, setIsUsageHistoryOpen] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     try {
@@ -166,9 +168,10 @@ const App: React.FC = () => {
     result: null,
   });
 
-  // Test connection & Subscribe to Firebase Auth changes
+  // Test connection, track session, & Subscribe to Firebase Auth changes
   useEffect(() => {
     testConnection();
+    startSessionTracking();
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
@@ -532,6 +535,16 @@ const App: React.FC = () => {
           console.error("Error saving history item to Firestore:", err);
         });
       }
+
+      // Log to global all-time activity history
+      logGlobalLessonPlan({
+        gradeLevel: request.gradeLevel,
+        duration: 1,
+        topicTitle: request.topicTitle,
+        chapterTitle: request.chapterTitle,
+        previewText: newItem.previewText,
+        fullContent: JSON.stringify(generated)
+      }).catch(() => {});
       
       setState({
         isLoading: false,
@@ -588,6 +601,15 @@ const App: React.FC = () => {
           console.error("Error saving history item to Firestore:", err);
         });
       }
+
+      // Log to global all-time activity history
+      logGlobalLessonPlan({
+        gradeLevel: request.gradeLevel,
+        duration: request.duration || 1,
+        topicTitle: request.topicTitle || 'পাঠ পরিকল্পনা',
+        previewText: newItem.previewText,
+        fullContent: resultText
+      }).catch(() => {});
 
       setState({
         isLoading: false,
@@ -650,6 +672,16 @@ const App: React.FC = () => {
           console.error("Error saving history item to Firestore:", err);
         });
       }
+
+      // Log to global all-time activity history
+      logGlobalLessonPlan({
+        gradeLevel: request.gradeLevel,
+        duration: request.totalDurationMinutes || 40,
+        topicTitle: request.topicTitle,
+        chapterTitle: request.chapterTitle,
+        previewText: newItem.previewText,
+        fullContent: JSON.stringify(planData)
+      }).catch(() => {});
 
       setState({
         isLoading: false,
@@ -845,6 +877,7 @@ const App: React.FC = () => {
         savedBooks={savedBooks}
         onSelectBook={handleSelectBook}
         onDeleteBook={handleDeleteBook}
+        onOpenUsageHistory={() => setIsUsageHistoryOpen(true)}
       />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden w-full transition-all duration-300 z-10">
@@ -855,6 +888,7 @@ const App: React.FC = () => {
           onLogout={handleLogout}
           isDarkMode={isDarkMode}
           onToggleDarkMode={toggleDarkMode}
+          onOpenUsageHistory={() => setIsUsageHistoryOpen(true)}
         />
         
         <main className="flex-1 overflow-y-auto scroll-smooth">
@@ -1117,8 +1151,15 @@ const App: React.FC = () => {
                     extractionProgress={bookExtractionProgress}
                     onSubmit={handleGenerateDetailedPlan}
                     isLoading={state.isLoading}
-                    onSelectSample={() => {
-                      setCurrentDetailedPlan(EXACT_SAMPLE_DETAILED_PLAN);
+                    onSelectSample={(sampleType) => {
+                      const match = ALL_GRADE_SAMPLE_PLANS.find(s => s.id === sampleType);
+                      if (match) {
+                        setCurrentDetailedPlan(match.plan);
+                      } else if (sampleType === 'class2') {
+                        setCurrentDetailedPlan(FORMAL_OBSERVATION_02_PLAN);
+                      } else {
+                        setCurrentDetailedPlan(CLASS_1_ISLAM_SAMPLE_PLAN);
+                      }
                       setTimeout(() => {
                         resultRef.current?.scrollIntoView({ behavior: 'smooth' });
                       }, 100);
@@ -1153,6 +1194,12 @@ const App: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Usage Analytics & Activity History Modal */}
+      <UsageHistoryModal 
+        isOpen={isUsageHistoryOpen} 
+        onClose={() => setIsUsageHistoryOpen(false)} 
+      />
     </div>
   );
 };

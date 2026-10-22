@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Menu, LogIn, LogOut, User as UserIcon, Sun, Moon } from 'lucide-react';
+import { BookOpen, Menu, LogIn, LogOut, User as UserIcon, Sun, Moon, ShieldCheck } from 'lucide-react';
 import { User } from 'firebase/auth';
 
 interface HeaderProps {
@@ -10,6 +10,7 @@ interface HeaderProps {
   onLogout?: () => void;
   isDarkMode?: boolean;
   onToggleDarkMode?: () => void;
+  onOpenUsageHistory?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -18,7 +19,8 @@ const Header: React.FC<HeaderProps> = ({
   onLogin, 
   onLogout,
   isDarkMode = false,
-  onToggleDarkMode
+  onToggleDarkMode,
+  onOpenUsageHistory
 }) => {
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40 shadow-sm transition-colors duration-300">
@@ -70,6 +72,18 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Right Side: Theme Toggle & Firebase User Profile / Auth Button */}
         <div className="flex-1 flex items-center justify-end space-x-2">
+          {/* Usage Analytics / Admin History Button */}
+          {onOpenUsageHistory && (
+            <button
+              onClick={onOpenUsageHistory}
+              className="px-2.5 py-1.5 rounded-xl text-teal-800 dark:text-teal-200 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/70 dark:hover:bg-teal-900 border border-teal-200/90 dark:border-teal-800/80 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
+              title="ব্যবহার পরিসংখ্যান ও অ্যাক্টিভিটি হিস্ট্রি (PIN সুরক্ষিত)"
+            >
+              <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+              <span className="hidden sm:inline">ব্যবহার হিস্ট্রি</span>
+            </button>
+          )}
+
           {/* Theme Switcher Button */}
           {onToggleDarkMode && (
             <button

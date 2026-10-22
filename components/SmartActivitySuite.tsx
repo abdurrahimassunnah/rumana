@@ -159,33 +159,33 @@ export const SmartActivitySuite: React.FC<SmartActivitySuiteProps> = ({
       }
     },
     {
-      id: 'exit_ticket_traffic',
+      id: 'verbal_review_check',
       category: 'assessment',
       categoryLabel: 'শেখা যাচাই ও মূল্যায়ন',
-      title: isAr ? 'نشاط تذكرة الخروج وإشارات المرور (تقييم الفهم)' : (isEn ? 'Exit Ticket & Traffic Light Comprehension Check' : 'এক্সিট টিকিট ও ট্রাফিক লাইট মূল্যায়ন (বাচ্চার শেখা যাচাই)'),
-      tagline: isAr ? 'تقييم فوري لمعرفة مدى استيعاب كل طفل قبل انتهاء الحصة' : (isEn ? 'Formative assessment to verify mastery before class ends' : 'ক্লাস শেষের আগে প্রতিটি বাচ্চা সত্যি শিখেছে কিনা তাৎক্ষণিক যাচাই'),
-      suitableAges: 'সকল শ্রেণি (প্লে থেকে ৮ম শ্রেণি)',
-      learningGoal: 'প্রতিটি শিক্ষার্থীর শিখন ঘাটতি তাৎক্ষণিক চিহ্নিত করা এবং নিশ্চিত সাফল্য অর্জন।',
+      title: isAr ? 'نشاط المراجعة الشفهية وتلخيص الفهم' : (isEn ? 'Targeted Oral Review & Lesson Wrap-up' : 'মৌখিক প্রশ্নোত্তর ও মূল শিখন যাচাই (রিভিউ)'),
+      tagline: isAr ? 'مراجعة ختامية شفهية للتأكد من استيعاب المفاهيم الأساسية' : (isEn ? 'Age-appropriate oral questioning to consolidate core learning' : 'বয়স ও বিষয়োপযোগী প্রশ্নোত্তরের মাধ্যমে মূল শিক্ষা যাচাই ও ইতিবাচক সমাপ্তি'),
+      suitableAges: 'সকল শ্রেণি (প্লে থেকে ১০ম শ্রেণি)',
+      learningGoal: 'বিষয়বস্তুর গভীর ভাবার্থ বোঝা এবং নিজের ভাষায় মূল শিক্ষা গুছিয়ে বলতে পারা।',
       step: {
-        stageAndTime: isAr ? 'التقييم الختامي وتذكرة الخروج\n٥ دقائق' : (isEn ? 'Exit Check & Formative Assessment\n5 minutes' : 'পর্যালোচনা ও তাৎক্ষণিক শিখন যাচাই\n৫ মিনিট'),
-        activityTitle: isAr ? 'النشاط: تذكرة الخروج وإشارات الفهم' : (isEn ? 'Activity: Exit Ticket & Traffic Light Check' : 'কার্যক্রম: এক্সিট টিকিট ও শিখন নিশ্চিতকরণ'),
+        stageAndTime: isAr ? 'المراجعة والتقييم الختامي\n٥ دقائق' : (isEn ? 'Review & Wrap-up\n5 minutes' : 'পাঠ পর্যালোচনা ও মূল্যায়ন\n≈ ৫ মিনিট'),
+        activityTitle: isAr ? 'النشاط: المراجعة الشفهية وتلخيص الدرس' : (isEn ? 'Activity: Oral Review & Key Takeaway Summary' : 'কার্যক্রম: পাঠ পর্যালোচনা ও মৌখিক শিখন মূল্যায়ন'),
         procedurePoints: isAr ? [
-          'يعرض المعلم سؤالاً سريعاً أو يطلب نطق كلمة/حرف كتذكرة للخروج من الحصة',
-          'يرفع الطلاب إشارة المرور: أخضر (فهمت تماماً)، أصفر (أحتاج مساعدة قليلة)، أحمر (لم أفهم)',
-          'يسجل المعلم الطلاب الذين يحتاجون إلى متابعة فردية في الحصة القادمة'
+          'يطرح المعلم أسئلة شفهية هادفة تركز على المفهوم الجوهري للدرس',
+          'يلخص الطلاب العبرة المستفادة أو القاعدة بكلماتهم الخاصة بحرية',
+          'يثني المعلم على جهود الطلاب ويختم الحصة بدعاء مبارك وتشجيع طيب'
         ] : (isEn ? [
-          'Teacher asks one quick individual exit question before lesson concludes',
-          'Students show understanding cards: Green (I got it!), Yellow (Need a little help), Red (Help me)',
-          'Teacher logs students needing review and celebrates overall class success'
+          'Teacher asks 2-3 focused oral questions reviewing core concepts taught today',
+          'Students summarize the central takeaway or moral in their own words',
+          'Teacher provides warm positive reinforcement, gentle corrections, and wraps up gracefully'
         ] : [
-          'শিক্ষক ক্লাস শেষ করার আগে প্রতিটি শিশুকে একটি করে শব্দ বলা বা হরফ চেনার ছোট্ট এক্সিট প্রশ্ন করেন',
-          'শিক্ষার্থীরা আঙুল তুলে বা থাম্বস আপ দিয়ে দেখায়: সম্পূর্ণ বুঝেছি (👍), সামান্য দ্বিধা আছে (✊)',
-          'উস্তাদ বুঝতে পারেন কোন বাচ্চার আরও একটু সহযোগিতা প্রয়োজন এবং তাৎক্ষণিক সঠিকটা ধরিয়ে দেন'
+          'শিক্ষক ক্লাসের শিক্ষার্থীদের আজকের পাঠের মূল বিষয়বস্তু থেকে বয়স ও বিষয়োপযোগী প্রশ্ন করে শিখন যাচাই করবেন',
+          'শিক্ষার্থীরা স্বতঃস্ফূর্তভাবে হাত তুলে প্রশ্নের উত্তর দেবে এবং আজকের ক্লাসের মূল শিক্ষা নিজের ভাষায় বলবে',
+          'শিক্ষক সামগ্রিক বোঝাপড়া যাচাই করে ইতিবাচক প্রশংসা ও উৎসাহ দেবেন এবং সুন্দর শিষ্টাচারের সাথে পাঠ সমাপ্ত করবেন'
         ]),
-        childrenDo: isAr ? 'يجيب كل طالب بشكل فردي وسريع ويوضح مستوى فهمه بصدق' : (isEn ? 'Each child responds individually and honestly signals their understanding' : 'প্রত্যেক শিশু আত্মবিশ্বাসের সাথে প্রশ্নের উত্তর দেয় এবং নিজের শেখার অবস্থা প্রকাশ করে'),
-        teacherDoes: isAr ? 'يقيّم فهم كل طالب بدقة ويدون الملاحظات للعلاج التربوي' : (isEn ? 'Assesses each student reliably and notes down follow-ups for struggling learners' : 'প্রতিটি বাচ্চার মেধা ও শিখন যাচাই করে নিশ্চিত হন এবং স্নেহপূর্ণ দোয়া ও উৎসাহের সাথে ক্লাস সমাপ্ত করেন'),
-        intPattern: isAr ? 'ف/ك\nف' : 'W/C\nS',
-        aids: isAr ? 'بطاقات تقييم\nدفتر' : 'Exit Cards\nRegister'
+        childrenDo: isAr ? 'يجيب الطلاب شفهياً ويعبرون عن فهمهم بأسلوبهم الخاص' : (isEn ? 'Answer eagerly, articulate key concepts in own words, and engage in reflection' : 'প্রশ্নের উত্তর দেয়, মূল বিষয়বস্তু মুখে মুখে নিজের ভাষায় গুছিয়ে বলে এবং সক্রিয়ভাবে অংশ নেয়'),
+        teacherDoes: isAr ? 'يدير الحوار بمهارة، يرسخ المفاهيم، ويختم الحصة بروح إيجابية' : (isEn ? 'Facilitates recap, affirms accurate understanding, and concludes with warmth' : 'সংক্ষেপে পাঠের সারসংক্ষেপ টেনে দেন, শিক্ষার্থীদের সক্রিয় অংশগ্রহণের আন্তরিক প্রশংসা করেন ও দোয়া করেন'),
+        intPattern: isAr ? 'ف/ك' : 'W/C',
+        aids: isAr ? 'سبورة' : 'Board / Textbook'
       }
     },
     {
